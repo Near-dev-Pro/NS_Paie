@@ -4,11 +4,18 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QTranslator>
+#include <QFontDatabase>
 #include "Backend.h"
 
 int main(int argc, char *argv[])
 {
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
+
+    // Settint default font
+    qint32 fontId = QFontDatabase::addApplicationFont(":/assets/fonts/roboto.ttf");
+    QStringList fontList = QFontDatabase::applicationFontFamilies(fontId);
+    QString family = fontList.first();
+    app.setFont(QFont(family));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

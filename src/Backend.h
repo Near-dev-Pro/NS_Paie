@@ -27,7 +27,10 @@ class Backend : public QObject
 {
     Q_OBJECT
 public:
+    // methodes
     static Backend *instance();
+    Q_INVOKABLE bool startPreviewDoc(QVariant);
+    Q_INVOKABLE bool startPrintDoc(QPrinter *);
 
     virtual ~Backend();
 
@@ -46,6 +49,7 @@ private:
     // proprietes
     QDir dbPath;
     QSqlDatabase db;
+    QVariant currentTargetPrint;
 };
 
 #endif // BACKEND_H

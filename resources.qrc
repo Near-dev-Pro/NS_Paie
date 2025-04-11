@@ -2,8 +2,32 @@
     <qresource prefix="/">
         <file>qml/main.qml</file>
         <file>qtquickcontrols2.conf</file>
-        <file>assets/images/def_logo.ico</file>
         <file>db_save/ns_paie.db</file>
+        <file>qml/HeaderDoc.qml</file>
+        <file>qml/home.qml</file>
+        <file>qml/bullGSBD.qml</file>
+        <file>qml/bullCPBI.qml</file>
+        <file>qml/bullCBD.qml</file>
+        <file>qml/bullCSD.qml</file>
+        <file>assets/images/x32/dashboard.svg</file>
+        <file>assets/images/x32/drawer_menu.svg</file>
+        <file>qml/Footer.qml</file>
+        <file>assets/images/x32/home.svg</file>
+        <file>assets/images/x64/error.svg</file>
+        <file>assets/images/x64/success.svg</file>
+        <file>assets/images/x64/warning.svg</file>
+        <file>assets/images/logos/def_logo.ico</file>
+        <file>assets/images/logos/CPBI.png</file>
+        <file>assets/images/logos/CSD.png</file>
+        <file>assets/images/logos/GSBD.png</file>
+        <file>assets/images/logos/logo.svg</file>
+        <file>assets/fonts/roboto.ttf</file>
+        <file>assets/images/logos/CBD.png</file>
+        <file>qml/bullRLD.qml</file>
+        <file>qml/data.qml</file>
+        <file>qml/Style.qml</file>
+        <file>qml/qmldir</file>
+        <file>qml/employe.qml</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>

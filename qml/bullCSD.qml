@@ -1,0 +1,299 @@
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+import QtQuick
+import QtQuick.Dialogs
+
+Page {
+    id: bullMat
+    anchors.horizontalCenter: parent.horizontalCenter
+    title: qsTr("Bulletin GSBD")
+    // Dimension standard pour un format A4
+    // Avec 1920 x 1080 de resolution et environ 22 pouce
+    // Pour un resultat de sensiblement 96 DPI
+    width: 794
+    height: 1122
+
+    property int theId: 0
+    property int docType: 0
+
+    Shortcut {
+        sequence: StandardKey.Print
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            let stat = printableContainer.grabToImage(function (result) {
+                MyApi.startPreviewDoc(result.image);
+            });
+        }
+    }
+
+    ScrollView {
+        id: printableContainer
+        anchors.fill: parent
+        contentHeight: printableContent.height
+
+        Rectangle {
+            id: printableContent
+            anchors.fill: parent
+            anchors.topMargin: 10
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
+            anchors.bottomMargin: 10
+
+            HeaderDoc{
+                id: headerDoc
+                logoSrc: "qrc:/assets/images/logos/CSD.png"
+                minsNameFr: "MINISTERE DE LA SANTE PUBLIQUE"
+                minsNameEn: "MINISTRY OF PUBLIC HEALTH"
+                nameFr: "CENTRE DE SANTE EVANGELIQUE LA DISTINCTION"
+                nameEn: "DISTINCTION EVANGELICAL HEALTH CENTRE"
+                delRegFr: "Délégation régionale de la santé de l’Adamaoua"
+                delRegEn: "Adamawa Reginal Delegation of heath"
+                delDepFr: "District de santé de Ngaoundéré Urbain"
+                delDepEn: "Ngaoundere Urbain Heath district"
+            }
+
+            Rectangle {
+                id: myDivider
+                anchors.top: headerDoc.bottom
+                anchors.left: parent.left
+                anchors.topMargin: 10
+                width: parent.width
+                height: 2
+                color: "black"
+            }
+
+            Label {
+                id: subTitle
+                anchors.top: myDivider.bottom
+                anchors.topMargin: 10
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                text: "Rémunération mensuelle"
+                font.bold: true
+                font.pixelSize: 16
+            }
+
+            Rectangle {
+                id: details
+                anchors.top: subTitle.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 50
+                width: (titles.width + values.width + 10)
+                height: titles.height
+
+                Rectangle {
+                    id: titles
+                    width: (colTitles.implicitWidth + 10)
+                    height: (colTitles.implicitHeight + 10)
+
+                    ColumnLayout {
+                        id: colTitles
+                        anchors.fill: titles
+                        anchors.margins: 10
+                        spacing: 5
+
+                        Label {
+                            text: "Salaire de base :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Primes :"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Label {
+                            text: " - Transport :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Salaire cotisable :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Salaire taxable :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Salaire brute :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Retenues Impots :"
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Label {
+                            text: " - IRPP :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: " - Taxe Communale :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: " - Crédit foncier:.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: " - Cac :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: " - Rav :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Total Impots:"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Retenues CNPS (4,2%):"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: " - Cotisation :.............................."
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Total Retenues:"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "Net à Payer:"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: values
+                    // anchors.top: subTitle.bottom
+                    anchors.left: titles.right
+                    anchors.leftMargin: 75
+                    width: 210
+                    height: (colValues.implicitHeight + 10)
+                    border.width: 2
+                    border.color: "black"
+
+                    ColumnLayout {
+                        id: colValues
+                        anchors.fill: values
+                        anchors.margins: 10
+                        spacing: 5
+
+                        Label {
+                            text: "60000"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: ""
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Label {
+                            text: "4000"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "60000"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "60000"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "60000"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: ""
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Label {
+                            text: "0"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "0"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "600"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "0"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "750"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "1350"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: ""
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "2520"
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "3870"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            text: "56130 FCFA"
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                    }
+                }
+            }
+
+            Label {
+                id: location
+                anchors.top: details.bottom
+                anchors.topMargin: 20
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "Fait à Ngaoundéré, le :.............................."
+                font.pixelSize: 16
+            }
+
+            Label {
+                id: visaEco
+                anchors.top: location.bottom
+                anchors.left: parent.left
+                anchors.topMargin: 20
+                anchors.leftMargin: 50
+                text: "Visa de l'Econome:"
+                font.pixelSize: 16
+                font.bold: true
+            }
+
+            Label {
+                id: signEmp
+                anchors.top: location.bottom
+                anchors.topMargin: 20
+                anchors.right: parent.right
+                anchors.rightMargin: 50
+                text: "Signature de l'employé(e):"
+                font.pixelSize: 16
+                font.bold: true
+            }
+        }
+    }
+}
