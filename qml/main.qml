@@ -203,7 +203,7 @@ ApplicationWindow {
                             color: stackview.currentItem === toolEmp.currentItemStkView ? Style.secondColorLight : "transparent"
                         }
 
-                        property string targetIcon: "qrc:/assets/images/x32/home.svg"
+                        property string targetIcon: "qrc:/assets/images/x32/employe.svg"
                         property string targetPage: "qrc:/qml/employe.qml"
                         property Item currentItemStkView
 
@@ -248,7 +248,7 @@ ApplicationWindow {
                             color: stackview.currentItem === toolData.currentItemStkView ? Style.secondColorLight : "transparent"
                         }
 
-                        property string targetIcon: "qrc:/assets/images/x32/home.svg"
+                        property string targetIcon: "qrc:/assets/images/x32/data.svg"
                         property string targetPage: "qrc:/qml/data.qml"
                         property Item currentItemStkView
 

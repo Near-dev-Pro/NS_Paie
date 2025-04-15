@@ -4,83 +4,136 @@ import QtQuick.Layouts
 
 Page {
     id: currentItemId
-    property StackView stkView: StackView.view
+    property string currentPage: "qrc:/qml/new_paie.qml"
 
     // Barre d'Outils
-    // header: ToolBar {
-    //     Layout.fillWidth: true
-    //     opacity: 0.8
+    header: ToolBar {
+        Layout.fillWidth: true
+        Material.background: Style.secondColorLight
 
-    //     RowLayout {
-    //         anchors.fill: parent
-    //         spacing: 10
+        RowLayout {
+            anchors.fill: parent
+            spacing: 10
 
-    //         ToolButton {
-    //             id: toolNewSale
-    //             property string targetIcon: "qrc:/assets/images/x32/dashboard.svg"
-    //             property string targetPage: "qrc:/qml/dashboard.qml"
+            ToolButton {
+                id: toolNewPaie
+                property string targetIcon: "qrc:/assets/images/x32/new_paie.svg"
+                property string targetPage: "qrc:/qml/new_paie.qml"
 
-    //             contentItem: RowLayout {
-    //                 spacing: 5
-    //                 Layout.alignment: Qt.AlignHCenter
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.backgroundLight : "transparent"
+                }
 
-    //                 IconImage {
-    //                     source: toolNewSale.targetIcon
-    //                     Layout.preferredWidth: 24
-    //                     Layout.preferredHeight: 24
-    //                     color: "white"
-    //                 }
-    //                 Label {
-    //                     text: qsTr("Tableau de bord")
-    //                     color: "white"
-    //                     font.bold: true
-    //                     font.pixelSize: 22
-    //                 }
-    //             }
-    //         }
+                onClicked: {
+                    currentItemId.currentPage = toolNewPaie.targetPage
+                    childStackView.pop(null)
+                }
 
-    //         Item {
-    //             Layout.fillWidth: true
-    //         }
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
 
-    //         ToolButton {
-    //             id: toolHelp
-    //             property string targetIcon: "qrc:/assets/images/x32/contact_support.svg"
-    //             property string targetPage: "qrc:/qml/contact_support.qml"
+                    IconImage {
+                        source: toolNewPaie.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        color: Material.primary
+                    }
+                    Label {
+                        text: qsTr("Nouvelle paie")
+                        color: Material.foreground
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
 
-    //             onClicked: {
-    //                 currentItemId.stkView.push("qrc:/qml/contact_support.qml")
-    //             }
+            ToolSeparator{}
 
-    //             contentItem: RowLayout {
-    //                 spacing: 5
-    //                 Layout.alignment: Qt.AlignHCenter
+            ToolButton {
+                id: toolHistPaie
+                property string targetIcon: "qrc:/assets/images/x32/hist_paie.svg"
+                property string targetPage: "qrc:/qml/hist_paie.qml"
+                property Item currentItemStkView
 
-    //                 Label {
-    //                     text: qsTr("Contacts & Supports")
-    //                     color: "white"
-    //                     font.bold: true
-    //                     font.pixelSize: 22
-    //                 }
-    //                 IconImage {
-    //                     source: toolHelp.targetIcon
-    //                     Layout.preferredWidth: 24
-    //                     Layout.preferredHeight: 24
-    //                     color: "white"
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === toolHistPaie.currentItemStkView ? Style.backgroundLight : "transparent"
+                }
 
-    ScrollView {
+                onClicked: {
+                    currentItemId.currentPage = toolHistPaie.targetPage
+                    toolHistPaie.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                }
+
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
+
+                    IconImage {
+                        source: toolHistPaie.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        color: Material.primary
+                    }
+                    Label {
+                        text: qsTr("Historique des paies")
+                        color: Material.foreground
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+    }
+
+    // pour une navigation en stack
+    StackView {
+        id: childStackView
         anchors.fill: parent
+        initialItem: currentItemId.currentPage
 
-        // To be removed
-        Button {
-            text: "click"
-            onClicked: {
-                currentItemId.stkView.push("qrc:/qml/bullMat.qml")
+        pushEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to:1
+                duration: 200
+            }
+        }
+        pushExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to:0
+                duration: 200
+            }
+        }
+        popEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to:1
+                duration: 200
+            }
+        }
+        popExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to:0
+                duration: 200
             }
         }
     }

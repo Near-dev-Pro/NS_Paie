@@ -9,7 +9,6 @@
         <file>qml/bullCPBI.qml</file>
         <file>qml/bullCBD.qml</file>
         <file>qml/bullCSD.qml</file>
-        <file>assets/images/x32/dashboard.svg</file>
         <file>assets/images/x32/drawer_menu.svg</file>
         <file>qml/Footer.qml</file>
         <file>assets/images/x32/home.svg</file>
@@ -24,10 +23,21 @@
         <file>assets/fonts/roboto.ttf</file>
         <file>assets/images/logos/CBD.png</file>
         <file>qml/bullRLD.qml</file>
-        <file>qml/data.qml</file>
         <file>qml/Style.qml</file>
         <file>qml/qmldir</file>
         <file>qml/employe.qml</file>
+        <file>assets/images/x32/employe.svg</file>
+        <file>assets/images/x32/data.svg</file>
+        <file>assets/images/x32/new_paie.svg</file>
+        <file>assets/images/x32/hist_paie.svg</file>
+        <file>qml/hist_paie.qml</file>
+        <file>qml/new_paie.qml</file>
+        <file>qml/add_emp.qml</file>
+        <file>qml/modif_emp.qml</file>
+        <file>assets/images/x32/add_emp.svg</file>
+        <file>assets/images/x32/modif_emp.svg</file>
+        <file>qml/data.qml</file>
+        <file>assets/images/x32/person_search.svg</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>
