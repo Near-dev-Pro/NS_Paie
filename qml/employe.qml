@@ -1,15 +1,16 @@
 import QtQuick
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtQuick.Effects
 
 Page {
     id: currentItemId
-    property string currentPage: "qrc:/qml/add_emp.qml"
+    property string currentPage: "qrc:/qml/new_emp.qml"
 
     // Barre d'Outils
     header: ToolBar {
         Layout.fillWidth: true
-        Material.background: Style.secondColorLight
+        Material.background: Style.secondary
 
         RowLayout {
             anchors.fill: parent
@@ -18,14 +19,14 @@ Page {
             ToolButton {
                 id: toolNewEmp
                 property string targetIcon: "qrc:/assets/images/x32/add_emp.svg"
-                property string targetPage: "qrc:/qml/add_emp.qml"
+                property string targetPage: "qrc:/qml/new_emp.qml"
 
                 background: Rectangle {
                     anchors.fill: parent
                     anchors.leftMargin: 2
                     height: 40
                     radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.backgroundLight : "transparent"
+                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.background : "transparent"
                 }
 
                 onClicked: {
@@ -37,15 +38,20 @@ Page {
                     spacing: 5
                     Layout.alignment: Qt.AlignHCenter
 
-                    IconImage {
+                    Image {
                         source: toolNewEmp.targetIcon
                         Layout.preferredWidth: 24
                         Layout.preferredHeight: 24
-                        color: Material.primary
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
                     }
                     Label {
-                        text: qsTr("Ajout")
-                        color: Material.foreground
+                        text: qsTr("Ajouter")
+                        color: Style.text
                         font.bold: true
                         font.pixelSize: 18
                     }
@@ -65,7 +71,7 @@ Page {
                     anchors.leftMargin: 2
                     height: 40
                     radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === toolModifEmp.currentItemStkView ? Style.backgroundLight : "transparent"
+                    color: childStackView.currentItem === toolModifEmp.currentItemStkView ? Style.background : "transparent"
                 }
 
                 onClicked: {
@@ -77,15 +83,20 @@ Page {
                     spacing: 5
                     Layout.alignment: Qt.AlignHCenter
 
-                    IconImage {
+                    Image {
                         source: toolModifEmp.targetIcon
                         Layout.preferredWidth: 24
                         Layout.preferredHeight: 24
-                        color: Material.primary
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
                     }
                     Label {
-                        text: qsTr("Modifications")
-                        color: Material.foreground
+                        text: qsTr("Modifier")
+                        color: Style.text
                         font.bold: true
                         font.pixelSize: 18
                     }
@@ -102,8 +113,6 @@ Page {
     StackView {
         id: childStackView
         anchors.fill: parent
-        Layout.fillWidth: true
-        Layout.fillHeight: true
         initialItem: currentItemId.currentPage
 
         pushEnter: Transition {

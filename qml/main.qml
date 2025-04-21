@@ -1,14 +1,26 @@
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick
+import QtQuick.Effects
 
 ApplicationWindow {
     id: mainAppScreen
-    minimumWidth: 800
+    minimumWidth: 1000
     minimumHeight: 600
     visible: true
     title: qsTr("NS Paie")
     property string currentPage: "qrc:/qml/home.qml"
+    property string myTheme: "Light"
+
+    Component.onCompleted: updateTheme(mainAppScreen.myTheme)
+
+    function updateTheme (curState) {
+        Style.curTheme = curState
+        Material.foreground = Style.text
+        Material.background = Style.background
+        Material.primary = Style.primary
+        Material.accent = Style.accent
+    }
 
     Shortcut {
         sequence: "Ctrl+Q"
@@ -25,6 +37,7 @@ ApplicationWindow {
             Layout.fillWidth: true
 
             RowLayout {
+                anchors.fill: parent // Ajouté pour que RowLayout remplisse tout l'espace du ToolBar
                 spacing: 10
 
                 // Bouton Menu pour ouvrir le Drawer
@@ -42,6 +55,43 @@ ApplicationWindow {
                     font.bold: true
                     Layout.alignment: Qt.AlignVCenter
                     color: Material.background
+                }
+
+                // Item pour pousser les éléments à droite
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                ToolButton {
+                    id: toolButtonTheme
+                    icon.name: "theme"
+                    icon.source: "qrc:/assets/images/x32/theme.svg"
+                    icon.color: Material.background
+                    onClicked: {
+                        contextMenu.open() // Ouvrir le menu contextuel au clic
+                    }
+                }
+
+                // Définition du menu contextuel
+                Menu {
+                    id: contextMenu
+                    x: toolButtonTheme.x + toolButtonTheme.width // Position horizontale relative au ToolButton
+                    y: toolButtonTheme.y + toolButtonTheme.height // Position verticale relative au ToolButton
+
+                    MenuItem {
+                        text: qsTr("Thème sombre")
+                        onTriggered: {
+                            mainAppScreen.myTheme = "Dark"
+                            updateTheme(mainAppScreen.myTheme)
+                        }
+                    }
+                    MenuItem {
+                        text: qsTr("Thème clair")
+                        onTriggered: {
+                            mainAppScreen.myTheme = "Light"
+                            updateTheme(mainAppScreen.myTheme)
+                        }
+                    }
                 }
             }
         }
@@ -127,7 +177,7 @@ ApplicationWindow {
                         text: qsTr("NS Paie")
                         font.pixelSize: 20
                         Layout.alignment: Qt.AlignHCenter
-                        color: Style.backgroundLight
+                        color: Style.background
                     }
                 }
             }
@@ -137,7 +187,7 @@ ApplicationWindow {
                 Layout.preferredWidth: drawer.width
                 Layout.preferredHeight: (drawer.availableHeight - logoAndNameRect.height)
                 radius: 25
-                Material.background: Material.background
+                color: Style.background
 
                 ColumnLayout {
                     spacing: 10
@@ -156,7 +206,7 @@ ApplicationWindow {
                             anchors.rightMargin: 10
                             height: 40
                             radius: Material.FullScale
-                            color: stackview.currentItem === stackview.get(0, StackView.DontLoad) ? Style.secondColorLight : "transparent"
+                            color: stackview.currentItem === stackview.get(0, StackView.DontLoad) ? Style.secondary : "transparent"
                         }
 
                         property string targetIcon: "qrc:/assets/images/x32/home.svg"
@@ -174,12 +224,19 @@ ApplicationWindow {
                             anchors.leftMargin: 20
                             anchors.rightMargin: 20
 
-                            IconImage {
+                            Image {
+                                id: toolHomeIcon
                                 source: toolHome.targetIcon
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
-                                color: Material.primary
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    brightness: 0.0
+                                    colorization: 1.0
+                                    colorizationColor: Material.primary
+                                }
                             }
+
                             Label {
                                 text: qsTr("Accueil")
                                 color: Material.foreground
@@ -200,7 +257,7 @@ ApplicationWindow {
                             anchors.rightMargin: 10
                             height: 40
                             radius: Material.FullScale
-                            color: stackview.currentItem === toolEmp.currentItemStkView ? Style.secondColorLight : "transparent"
+                            color: stackview.currentItem === toolEmp.currentItemStkView ? Style.secondary : "transparent"
                         }
 
                         property string targetIcon: "qrc:/assets/images/x32/employe.svg"
@@ -219,11 +276,16 @@ ApplicationWindow {
                             anchors.leftMargin: 20
                             anchors.rightMargin: 20
 
-                            IconImage {
+                            Image {
                                 source: toolEmp.targetIcon
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
-                                color: Material.primary
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    brightness: 0.0
+                                    colorization: 1.0
+                                    colorizationColor: Material.primary
+                                }
                             }
                             Label {
                                 text: qsTr("Employés")
@@ -245,7 +307,7 @@ ApplicationWindow {
                             anchors.rightMargin: 10
                             height: 40
                             radius: Material.FullScale
-                            color: stackview.currentItem === toolData.currentItemStkView ? Style.secondColorLight : "transparent"
+                            color: stackview.currentItem === toolData.currentItemStkView ? Style.secondary : "transparent"
                         }
 
                         property string targetIcon: "qrc:/assets/images/x32/data.svg"
@@ -264,11 +326,16 @@ ApplicationWindow {
                             anchors.leftMargin: 20
                             anchors.rightMargin: 20
 
-                            IconImage {
+                            Image {
                                 source: toolData.targetIcon
                                 Layout.preferredWidth: 24
                                 Layout.preferredHeight: 24
-                                color: Material.primary
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    brightness: 0.0
+                                    colorization: 1.0
+                                    colorizationColor: Material.primary
+                                }
                             }
                             Label {
                                 text: qsTr("Divers")

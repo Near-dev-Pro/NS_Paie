@@ -44,8 +44,8 @@ Page {
                 logoSrc: "qrc:/assets/images/logos/CSD.png"
                 minsNameFr: "MINISTERE DE LA SANTE PUBLIQUE"
                 minsNameEn: "MINISTRY OF PUBLIC HEALTH"
-                nameFr: "CENTRE DE SANTE EVANGELIQUE LA DISTINCTION"
-                nameEn: "DISTINCTION EVANGELICAL HEALTH CENTRE"
+                nameFr: "CENTRE DE SANTE LA DISTINCTION"
+                nameEn: "DISTINCTION HEALTH CENTRE"
                 delRegFr: "Délégation régionale de la santé de l’Adamaoua"
                 delRegEn: "Adamawa Reginal Delegation of heath"
                 delDepFr: "District de santé de Ngaoundéré Urbain"
@@ -279,7 +279,7 @@ Page {
                 anchors.left: parent.left
                 anchors.topMargin: 20
                 anchors.leftMargin: 50
-                text: "Visa de l'Econome:"
+                text: "Visa du DAF:"
                 font.pixelSize: 16
                 font.bold: true
             }

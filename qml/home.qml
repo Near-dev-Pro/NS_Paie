@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Material
 import QtQuick.Layouts
+import QtQuick.Effects
 
 Page {
     id: currentItemId
@@ -9,7 +10,7 @@ Page {
     // Barre d'Outils
     header: ToolBar {
         Layout.fillWidth: true
-        Material.background: Style.secondColorLight
+        Material.background: Style.secondary
 
         RowLayout {
             anchors.fill: parent
@@ -25,7 +26,7 @@ Page {
                     anchors.leftMargin: 2
                     height: 40
                     radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.backgroundLight : "transparent"
+                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.background : "transparent"
                 }
 
                 onClicked: {
@@ -37,15 +38,20 @@ Page {
                     spacing: 5
                     Layout.alignment: Qt.AlignHCenter
 
-                    IconImage {
+                    Image {
                         source: toolNewPaie.targetIcon
                         Layout.preferredWidth: 24
                         Layout.preferredHeight: 24
-                        color: Material.primary
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
                     }
                     Label {
                         text: qsTr("Nouvelle paie")
-                        color: Material.foreground
+                        color: Style.text
                         font.bold: true
                         font.pixelSize: 18
                     }
@@ -65,7 +71,7 @@ Page {
                     anchors.leftMargin: 2
                     height: 40
                     radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === toolHistPaie.currentItemStkView ? Style.backgroundLight : "transparent"
+                    color: childStackView.currentItem === toolHistPaie.currentItemStkView ? Style.background : "transparent"
                 }
 
                 onClicked: {
@@ -77,15 +83,20 @@ Page {
                     spacing: 5
                     Layout.alignment: Qt.AlignHCenter
 
-                    IconImage {
+                    Image {
                         source: toolHistPaie.targetIcon
                         Layout.preferredWidth: 24
                         Layout.preferredHeight: 24
-                        color: Material.primary
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
                     }
                     Label {
                         text: qsTr("Historique des paies")
-                        color: Material.foreground
+                        color: Style.text
                         font.bold: true
                         font.pixelSize: 18
                     }

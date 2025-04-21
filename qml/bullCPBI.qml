@@ -276,7 +276,7 @@ Page {
                 anchors.left: parent.left
                 anchors.topMargin: 20
                 anchors.leftMargin: 50
-                text: "Visa de l'Econome:"
+                text: "Visa du DAF:"
                 font.pixelSize: 16
                 font.bold: true
             }

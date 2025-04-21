@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>qml/main.qml</file>
         <file>qtquickcontrols2.conf</file>
-        <file>db_save/ns_paie.db</file>
         <file>qml/HeaderDoc.qml</file>
         <file>qml/home.qml</file>
         <file>qml/bullGSBD.qml</file>
@@ -38,6 +37,13 @@
         <file>assets/images/x32/modif_emp.svg</file>
         <file>qml/data.qml</file>
         <file>assets/images/x32/person_search.svg</file>
+        <file>assets/images/x32/more.svg</file>
+        <file>assets/images/x32/theme.svg</file>
+        <file>qml/new_emp.qml</file>
+        <file>assets/images/x32/edit.svg</file>
+        <file>assets/images/x32/save.svg</file>
+        <file>qml/global_hist.qml</file>
+        <file>assets/images/x32/global.svg</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>

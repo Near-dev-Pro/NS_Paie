@@ -47,7 +47,6 @@ private:
     void initialize();
 
     // proprietes
-    QDir dbPath;
     QSqlDatabase db;
     QVariant currentTargetPrint;
 };

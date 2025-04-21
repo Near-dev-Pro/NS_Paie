@@ -44,8 +44,8 @@ Page {
                 logoSrc: "qrc:/assets/images/logos/GSBD.png"
                 minsNameFr: "MINPOSTEL"
                 minsNameEn: "MINPOSTEL"
-                nameFr: "FONDATION FOI VIVANTE"
-                nameEn: "LIVING FAITH FUNDATION"
+                nameFr: "RADIO TELEVISION LA DISTINCTION"
+                nameEn: "DISTINCTION RADIO TELEVISION"
             }
 
             Rectangle {
@@ -274,7 +274,7 @@ Page {
                 anchors.left: parent.left
                 anchors.topMargin: 20
                 anchors.leftMargin: 50
-                text: "Visa de l'Econome:"
+                text: "Visa du DAF:"
                 font.pixelSize: 16
                 font.bold: true
             }

@@ -10,9 +10,8 @@ Backend::Backend(QObject *parent)
     : QObject(parent)
 {
     //Connexion unique a la base de donnees
-    QString path = dbPath.currentPath() + "/database/ns_paie.db";
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(path);
+    db.setDatabaseName("db_save/ns_paie.db");
 
     // Delais pour que les signaux et les slots se connectent
     // avant d'emettre
