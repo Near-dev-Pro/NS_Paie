@@ -14,11 +14,9 @@
         <file>assets/images/x64/error.svg</file>
         <file>assets/images/x64/success.svg</file>
         <file>assets/images/x64/warning.svg</file>
-        <file>assets/images/logos/def_logo.ico</file>
         <file>assets/images/logos/CPBI.png</file>
         <file>assets/images/logos/CSD.png</file>
         <file>assets/images/logos/GSBD.png</file>
-        <file>assets/images/logos/logo.svg</file>
         <file>assets/fonts/roboto.ttf</file>
         <file>assets/images/logos/CBD.png</file>
         <file>qml/bullRLD.qml</file>
@@ -44,6 +42,8 @@
         <file>assets/images/x32/save.svg</file>
         <file>qml/global_hist.qml</file>
         <file>assets/images/x32/global.svg</file>
+        <file>assets/images/logos/logo.svg</file>
+        <file>assets/images/logos/myIco.ico</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>

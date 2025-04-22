@@ -167,7 +167,7 @@ ApplicationWindow {
                     // Logo de l'application
                     Image {
                         source: "qrc:/assets/images/logos/logo.svg"  // Chemin vers le logo
-                        Layout.preferredWidth: 64
+                        Layout.preferredWidth: 128
                         Layout.preferredHeight: 64
                         Layout.alignment: Qt.AlignHCenter
                     }

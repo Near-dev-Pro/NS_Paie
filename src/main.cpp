@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     // Exposer l'instance singleton à QML
     engine.rootContext()->setContextProperty("MyApi", Backend::instance());
     // Définir l'icône de la fenêtre
-    app.setWindowIcon(QIcon("qrc:/assets/images/def_logo.ico"));
+    app.setWindowIcon(QIcon("qrc:/assets/images/myIco.ico"));
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     QObject::connect(

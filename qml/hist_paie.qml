@@ -59,7 +59,7 @@ Page {
                             id: emp
                             Layout.preferredWidth: (empRow.width * 0.6)
                             Layout.alignment: Qt.AlignRight
-                            model: ["Marketing", "RH", "Finance", "Production"]
+                            model: MyApi.getListEmp()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
 
                             delegate: ItemDelegate {
@@ -147,6 +147,47 @@ Page {
                         }
                     }
 
+                    Button {
+                        id: searchEmp
+                        text: qsTr("Lancer la recherche")
+                        font.bold: true
+                        Layout.alignment: Qt.AlignHCenter
+                        onClicked: {
+                            // TODO
+                        }
+                        contentItem: RowLayout {
+                            spacing: 5
+                            Image {
+                                source: "qrc:/assets/images/x32/person_search.svg"
+                                Layout.preferredWidth: 20
+                                Layout.preferredHeight: 20
+                                layer.enabled: true
+                                layer.effect: MultiEffect {
+                                    brightness: 1.0
+                                    saturation: 1.0
+                                    colorization: 1.0
+                                    colorizationColor: Material.foreground
+                                }
+                            }
+                            Text {
+                                text: searchEmp.text
+                                font: searchEmp.font
+                                color: Material.foreground
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                            }
+                        }
+                        background: Rectangle {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                            border.color: Material.accent
+                            border.width: 1
+                            radius: 25
+                            color: Style.accent
+                        }
+                    }
+
                     // Separateur
                     Rectangle {
                         id: sep1
@@ -172,8 +213,8 @@ Page {
                         Layout.preferredWidth: colLayId2.width
                         visible: (listView.model !== null && listView.model.count > 0)
                         model: ListModel {
-                            // ListElement { idEmp: "1"; libEmp: "Alice" }
-                            // ListElement { idEmp: "2"; libEmp: "Bob" }
+                            ListElement { idEmp: "1"; libEmp: "Alice" }
+                            ListElement { idEmp: "2"; libEmp: "Bob" }
                             // ListElement { idEmp: "3"; libEmp: "Charlie" }
                             // ListElement { idEmp: "4"; libEmp: "Diana" }
                             // ListElement { idEmp: "5"; libEmp: "Edward" }

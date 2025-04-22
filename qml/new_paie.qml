@@ -50,6 +50,8 @@ Page {
                             border.color: Material.accent
                             border.width: 1
                         }
+                        Keys.onEnterPressed: searchEmp()
+                        Keys.onReturnPressed: searchEmp()
                     }
 
                     Button {
@@ -57,9 +59,7 @@ Page {
                         text: qsTr("Rechercher")
                         font.bold: true
                         Layout.alignment: Qt.AlignHCenter
-                        onClicked: {
-                            // TODO
-                        }
+                        onClicked: searchEmp()
                         contentItem: RowLayout {
                             spacing: 5
                             Image {
@@ -111,7 +111,7 @@ Page {
 
                         // Texte indicatif
                         Label {
-                            text: qsTr("Département:")
+                            text: qsTr("Secteur:")
                             font.pixelSize: 16
                             color: Material.foreground
                             verticalAlignment: Text.AlignVCenter
@@ -123,7 +123,7 @@ Page {
                             id: departmentFilter
                             Layout.preferredWidth: (parent.width * 0.6)
                             Layout.alignment: Qt.AlignRight
-                            model: ["Marketing", "RH", "Finance", "Production"]
+                            model: MyApi.getListSectNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
 
                             delegate: ItemDelegate {
@@ -332,104 +332,21 @@ Page {
                             verticalAlignment: Text.AlignVCenter
                         }
 
-                        // ComboBox pour sélectionner une année
-                        ComboBox {
+                        // SpinBox pour sélectionner une année
+                        SpinBox {
                             id: yearFilter
                             Layout.preferredWidth: (parent.width * 0.6)
                             Layout.alignment: Qt.AlignRight
-                            currentIndex: -1 // Aucun élément sélectionné par défaut
-
-                            // Génération dynamique des 20 dernières années
-                            model: ListModel {
-                                Component.onCompleted: {
-                                    const currentYear = new Date().getFullYear();
-                                    for (let i = 0; i < 20; i++) {
-                                        append({ year: (currentYear - i).toString() });
-                                    }
-                                }
-                            }
-
-                            delegate: ItemDelegate {
-                                id: delegateYear
-
-                                required property var model
-                                required property int index
-
-                                width: yearFilter.width
-                                contentItem: Text {
-                                    text: delegateYear.model[yearFilter.textRole]
-                                    color: Material.foreground
-                                    font: yearFilter.font
-                                    elide: Text.ElideRight
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                highlighted: yearFilter.highlightedIndex === index
-                            }
-
-                            indicator: Canvas {
-                                id: canvasYear
-                                x: yearFilter.width - width - yearFilter.rightPadding
-                                y: yearFilter.topPadding + (yearFilter.availableHeight - height) / 2
-                                width: 12
-                                height: 8
-                                contextType: "2d"
-
-                                Connections {
-                                    target: yearFilter
-                                    function onPressedChanged() { canvasYear.requestPaint(); }
-                                }
-
-                                onPaint: {
-                                    context.reset();
-                                    context.moveTo(0, 0);
-                                    context.lineTo(width, 0);
-                                    context.lineTo(width / 2, height);
-                                    context.closePath();
-                                    context.fillStyle = Material.accent;
-                                    context.fill();
-                                }
-                            }
-
-                            contentItem: Text {
-                                leftPadding: 15
-                                rightPadding: yearFilter.indicator.width + yearFilter.spacing
-
-                                text: yearFilter.displayText
-                                font: yearFilter.font
-                                color: Style.text
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
-                            }
-
+                            implicitHeight: 40
+                            editable: true
+                            from: 2000
+                            value: new Date().getFullYear()
+                            to: 2100
                             background: Rectangle {
-                                implicitWidth: (parent.width * 0.6)
-                                implicitHeight: 40
                                 color: Material.background
-                                border.color: Material.accent
-                                border.width: yearFilter.visualFocus ? 2 : 1
                                 radius: 10
-                            }
-
-                            popup: Popup {
-                                y: yearFilter.height - 1
-                                width: yearFilter.width
-                                implicitHeight: contentItem.implicitHeight
-                                padding: 1
-
-                                contentItem: ListView {
-                                    clip: true
-                                    implicitHeight: contentHeight
-                                    model: yearFilter.popup.visible ? yearFilter.delegateModel : null
-                                    currentIndex: yearFilter.highlightedIndex
-
-                                    ScrollIndicator.vertical: ScrollIndicator { }
-                                }
-
-                                background: Rectangle {
-                                    color: Material.background
-                                    border.color: Material.accent
-                                    radius: 10
-                                }
+                                border.color: Material.accent
+                                border.width: 1
                             }
                         }
                     }
@@ -439,9 +356,7 @@ Page {
                         text: qsTr("Appliquer et chercher")
                         font.bold: true
                         Layout.alignment: Qt.AlignHCenter
-                        onClicked: {
-                            // TODO
-                        }
+                        onClicked: searchWithFilters()
                         contentItem: RowLayout {
                             spacing: 5
                             Image {
@@ -497,31 +412,14 @@ Page {
                         color: Style.placeholder
                         font.pixelSize: 20
                         Layout.alignment: Qt.AlignCenter
-                        visible: (listView.model === null || listView.model.count === 0)
+                        visible: (listView.model === null || listView.count === 0)
                     }
 
                     ListView {
                         id: listView
                         Layout.fillHeight: true
                         Layout.preferredWidth: colLayId2.width
-                        visible: (listView.model !== null && listView.model.count > 0)
-                        model: ListModel {
-                            // ListElement { idEmp: "1"; libEmp: "Alice" }
-                            // ListElement { idEmp: "2"; libEmp: "Bob" }
-                            // ListElement { idEmp: "3"; libEmp: "Charlie" }
-                            // ListElement { idEmp: "4"; libEmp: "Diana" }
-                            // ListElement { idEmp: "5"; libEmp: "Edward" }
-                            // ListElement { idEmp: "6"; libEmp: "Fiona" }
-                            // ListElement { idEmp: "7"; libEmp: "George" }
-                            // ListElement { idEmp: "8"; libEmp: "Hannah" }
-                            // ListElement { idEmp: "9"; libEmp: "Ian" }
-                            // ListElement { idEmp: "10"; libEmp: "Julia" }
-                            // ListElement { idEmp: "11"; libEmp: "Kevin" }
-                            // ListElement { idEmp: "12"; libEmp: "Laura" }
-                            // ListElement { idEmp: "13"; libEmp: "Mark" }
-                            // ListElement { idEmp: "14"; libEmp: "Nina" }
-                            // ListElement { idEmp: "15"; libEmp: "Oscar" }
-                        }
+                        visible: (listView.model !== null && listView.count > 0)
                         delegate: Item {
                             width: listView.width
                             height: 60
@@ -547,12 +445,12 @@ Page {
                                     anchors.leftMargin: 15
                                     anchors.rightMargin: 15
                                     Text {
-                                        text: model.idEmp
+                                        text: (index + 1)
                                         font.pixelSize: 16
                                         color: Material.foreground
                                     }
                                     Text {
-                                        text: "Nom: " + model.libEmp
+                                        text: listView.model.data(listView.model.index(index, 0))
                                         font.pixelSize: 18
                                         color: Material.foreground
                                     }
@@ -586,12 +484,8 @@ Page {
                                 x: moreActions.x + moreActions.width // Positionne le menu à droite de l'icône
                                 y: moreActions.y // Aligne le menu verticalement avec l'icône
                                 MenuItem {
-                                    text: qsTr("Bulletin de paie")
-                                    onTriggered: console.log("Option 1 sélectionnée")
-                                }
-                                MenuItem {
-                                    text: qsTr("Recapitulatif annuel")
-                                    onTriggered: console.log("Option 2 sélectionnée")
+                                    text: qsTr("Aperçu du bulletin de paie")
+                                    onTriggered: searchSecForBullPaie(listView.model.data(listView.model.index(index, 0)))
                                 }
                             }
                         }
@@ -599,5 +493,85 @@ Page {
                 }
             }
         }
+    }
+
+    function searchEmp() {
+        let checkEmpName = new Promise((resolve, reject) => {
+            if (empName.length < 1) {
+                reject("Veuillez saisir un nom à rechercher!")
+            }
+            else {
+                resolve(empName.text)
+            }
+        })
+        .then ((theName) => {
+            listView.model = MyApi.getOneEmp(theName)
+        })
+        .catch ((reason) => {
+            MyApi.sendWarning(reason)
+        })
+    }
+
+    function searchWithFilters() {
+        let myObj = {};
+        myObj["sect"] = departmentFilter.currentValue
+        myObj["sex"] = genderFilter.currentIndex
+        myObj["year"] = yearFilter.value.toString()
+
+        listView.model = MyApi.getGroupOfEmp(JSON.stringify(myObj))
+    }
+
+    function searchSecForBullPaie(theEmpName) {
+        new Promise((resolve, reject) => {
+            let correctBullname = MyApi.getSecNomForShowBull(theEmpName)
+            if (correctBullname.length > 0) {
+                resolve(correctBullname)
+            }
+            else {
+                reject("Impossible d'ouvrir le bulltin!")
+            }
+        })
+        .then((finalName) => {
+            const d = new Date();
+            const month = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Decembre"];
+            let component = Qt.createComponent(`bull${finalName}.qml`);
+
+            let bullWin = component.createObject(
+                parent,
+                {
+                    theData: {
+                        numBull: `${Number(0).toString().padStart(3, "0")}/${d.getFullYear().toString()}/${finalName}/bla/bla`,
+                        curMonth: month[d.getMonth()],
+                              empName: "",
+                              numCnps: "",
+                              numMatInt: Number(24).toString().padStart(3, "0"),
+                              numNiu: "",
+                              libTypEmp: "",
+                              cate: "",
+                              salBase: Number(0).toString(),
+                              prime: Number(0).toString(),
+                              salCot: Number(0).toString(),
+                              salTax: Number(0).toString(),
+                              salBrute: Number(0).toString(),
+                              irpp: Number(0).toString(),
+                              tc: Number(0).toString(),
+                              cf: Number(0).toString(),
+                              cac: Number(0).toString(),
+                              rav: Number(0).toString(),
+                              cotCnps: Number(0).toString(),
+                              nap: Number(0).toString()
+                    }
+                }
+            );
+            if (component.status === Component.Ready) {
+                bullWin.show();
+            }
+            else {
+                MyApi.sendWarning("Veuillez patienter: Ouverture du bulletin...");
+            }
+        })
+        .catch((reason) => {
+            MyApi.sendWarning(reason)
+        })
     }
 }

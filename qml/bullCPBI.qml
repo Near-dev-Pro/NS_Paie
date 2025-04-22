@@ -3,15 +3,16 @@ import QtQuick.Layouts
 import QtQuick
 import QtQuick.Dialogs
 
-Page {
+Window {
     id: bullMat
-    anchors.horizontalCenter: parent.horizontalCenter
-    title: qsTr("Bulletin GSBD")
+    title: qsTr("Bulletin CPBI")
     // Dimension standard pour un format A4
     // Avec 1920 x 1080 de resolution et environ 22 pouce
     // Pour un resultat de sensiblement 96 DPI
     width: 794
     height: 1122
+    maximumWidth: 794
+    maximumHeight: 1122
 
     property int theId: 0
     property int docType: 0
@@ -266,8 +267,10 @@ Page {
                 anchors.top: details.bottom
                 anchors.topMargin: 20
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Fait à Ngaoundéré, le :.............................."
                 font.pixelSize: 16
+                Component.onCompleted: {
+                    text = `Fait à Ngaoundéré, le : ${new Date().toISOString().split("T")[0]}`
+                }
             }
 
             Label {

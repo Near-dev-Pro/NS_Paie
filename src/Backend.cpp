@@ -20,6 +20,12 @@ Backend::Backend(QObject *parent)
 
 Backend::~Backend()
 {
+    delete listSectNom;
+    delete listTypEmpNom;
+    delete listEmp;
+    delete oneEmp;
+    delete groupOfEmp;
+
     //Fermeture de la connexion a la bd
     db.close();
 }
@@ -27,7 +33,7 @@ Backend::~Backend()
 void Backend::initialize()
 {
     if (!db.open()) {
-        emit errorOccurred("Failed to open database:" + db.lastError().text());
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
     }
 }
 
@@ -49,12 +55,12 @@ bool Backend::startPrintDoc(QPrinter *thePrinter)
     QImage contentImage = qvariant_cast<QImage>(
         currentTargetPrint); // On recupere le contenu du screenshot de l'ecran
     if (contentImage.isNull()) {
-        emit errorOccurred("Unable to print content!");
+        emit errorOccurred("Impossible d'imprimer le contenu!");
         return false;
     }
 
     if (!thePrinter) {
-        emit errorOccurred("Invalid printer!");
+        emit errorOccurred("Impriment invalide!");
         return false;
     }
 
@@ -75,5 +81,306 @@ bool Backend::startPrintDoc(QPrinter *thePrinter)
     // Dessiner l'image redimensionnée
     painter.drawImage(QRect(0, 0, widthPixels, heightPixels), scaledImage);
     painter.end();
+    return true;
+}
+
+QSqlQueryModel *Backend::getListSectNoms()
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    listSectNom = new QSqlQueryModel(this);
+    QSqlQuery query = QSqlQuery(db);
+
+    query.prepare("select libSec from secteur");
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + db.lastError().text());
+    }
+
+    listSectNom->setQuery(std::move(query));
+    //Definition des titre personnalises
+    listSectNom->setHeaderData(0, Qt::Horizontal, QObject::tr("SECTEURS"));
+
+    return (listSectNom->rowCount() > 0)? listSectNom: nullptr;
+}
+
+QSqlQueryModel *Backend::getListTypEmpNoms()
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    listTypEmpNom = new QSqlQueryModel(this);
+    QSqlQuery query = QSqlQuery(db);
+
+    query.prepare("select libTypEmp from typeEmp");
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + db.lastError().text());
+    }
+
+    listTypEmpNom->setQuery(std::move(query));
+    //Definition des titre personnalises
+    listTypEmpNom->setHeaderData(0, Qt::Horizontal, QObject::tr("TYPE D'EMPLOI"));
+
+    return (listTypEmpNom->rowCount() > 0)? listTypEmpNom: nullptr;
+}
+
+QString Backend::getSecNomForShowBull(const QString &theEmpName)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    QSqlQueryModel nomPourBull(this);
+    QSqlQuery query = QSqlQuery(db);
+
+    query.prepare("select libSec from employe join secteur on employe.idSec=secteur.idSec where libEmp=:libEmp");
+    query.bindValue(":libEmp", theEmpName);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + db.lastError().text());
+    }
+
+    return (query.next()) ? query.value(0).toString() : "";
+}
+
+QSqlRelationalTableModel *Backend::getListEmp()
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Assignantion du pointeur de la liste des employes
+    listEmp = new QSqlRelationalTableModel(this, db);
+    //Recupere la table permanent
+    QString tabProName("permanent");
+    listEmp->setTable(tabProName);
+    listEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
+    listEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
+    listEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
+    listEmp->sort(0, Qt::AscendingOrder);
+    listEmp->select();
+
+    return (listEmp->rowCount() > 0)? listEmp: nullptr;
+}
+
+QSqlRelationalTableModel *Backend::getOneEmp(const QString &theName)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un employe
+    oneEmp = new QSqlRelationalTableModel(this, db);
+    QString myFilter = "libEmp LIKE '%"+theName+"%'";
+
+    //Recupere la table permanent
+    QString tabProName("permanent");
+    oneEmp->setTable(tabProName);
+    oneEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
+    oneEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
+    oneEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
+    oneEmp->setFilter(myFilter);
+    oneEmp->sort(0, Qt::AscendingOrder);
+    oneEmp->select();
+
+    return (oneEmp->rowCount() > 0)? oneEmp: nullptr;
+}
+
+QSqlRelationalTableModel *Backend::getGroupOfEmp(const QString &filterData)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(filterData.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString libSec = myObj["sect"].toString();
+    int sexIndex = myObj["sex"].toInt();
+    QString dateArr = myObj["year"].toString();
+
+    // Par la date
+    QString theFilter = "dateEmp LIKE '%"+dateArr+"%'";
+
+    // Par le sexe
+    if (sexIndex >= 0) {
+        theFilter.append(" OR sexEmp="+QString::number(sexIndex));
+    }
+
+    // Par secteur
+    if (libSec.length() > 0) {
+        theFilter.append(" OR idSec="+QString::number(getSecIdByName(libSec)));
+    }
+
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche du groupe
+    groupOfEmp = new QSqlRelationalTableModel(this, db);
+
+    //Recupere la table permanent
+    QString tabProName("permanent");
+    groupOfEmp->setTable(tabProName);
+    groupOfEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
+    groupOfEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
+    groupOfEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
+    groupOfEmp->setFilter(theFilter);
+    groupOfEmp->sort(0, Qt::AscendingOrder);
+    groupOfEmp->select();
+
+    return (groupOfEmp->rowCount() > 0)? groupOfEmp: nullptr;
+}
+
+void Backend::sendWarning(QString msg)
+{
+    emit warningOccurred("Attention: " + msg);
+}
+
+bool Backend::submitNewEmp(const QString &empData)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(empData.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString libSec = myObj["sect"].toString();
+    QString libTypEmp = myObj["typEmp"].toString();
+    int idSec = getSecIdByName(libSec);
+    int idTypEmp = getTypEmpIdByName(libTypEmp);
+    int lastEmpId = 0;
+
+    //Verification du secteur
+    if (idSec == 0) {
+        emit errorOccurred("Secteur inconnu ou erreur interne!");
+
+        return false;
+    }
+
+    //Debut de la logique d'insertion d'un nouvel employe...
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans employe
+    query.prepare(
+        "insert into `employe` (idSec, libEmp, sexEmp, numCni, contact, dateEmp) values (:idSec, :libEmp, :sexEmp, :numCni, :contact, :dateEmp)"
+    );
+    query.bindValue(":idSec", idSec);
+    query.bindValue(":libEmp", myObj["empName"].toString());
+    query.bindValue(":sexEmp", myObj["sex"].toInt());
+    query.bindValue(":numCni", myObj["numCni"].toString());
+    query.bindValue(":contact", myObj["contact"].toString());
+    query.bindValue(":dateEmp", myObj["year"].toString());
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+    lastEmpId = query.lastInsertId().toInt();
+
+    // Insertion dans prime
+    query.prepare(
+        "insert into 'prime' (idEmp, libPri, montPri) values (:idEmp, :libPri, :montPri)"
+    );
+    query.bindValue(":idEmp", lastEmpId);
+    query.bindValue(":libPri", "TRANSPORT");
+    query.bindValue(":montPri", myObj["prime"].toInt());
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare(
+        "insert into `permanent` (idEmp, numCnps, niu, typEmp, cate, salBase, salCot, salTax, salBrute, irpp, tc, cf, cac, rav) values "
+        "(:lastEmpId, :numCnps, :niu, :typEmp, :cate, :salBase, :salCot, :salTax, :salBrute, :irpp, :tc, :cf, :cac, :rav)"
+    );
+    query.bindValue(":lastEmpId", lastEmpId);
+    query.bindValue(":numCnps", myObj["numCnps"].toString());
+    query.bindValue(":niu", myObj["niu"].toString());
+    query.bindValue(":typEmp", idTypEmp);
+    query.bindValue(":cate", myObj["cat"].toString());
+    query.bindValue(":salBase", myObj["salBase"].toInt());
+    query.bindValue(":salCot", myObj["salCot"].toInt());
+    query.bindValue(":salTax", myObj["salTax"].toInt());
+    query.bindValue(":salBrute", myObj["salBrute"].toInt());
+    query.bindValue(":irpp", myObj["irpp"].toInt());
+    query.bindValue(":tc", myObj["tc"].toInt());
+    query.bindValue(":cf", myObj["cf"].toInt());
+    query.bindValue(":cac", myObj["cac"].toInt());
+    query.bindValue(":rav", myObj["rav"].toInt());
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+int Backend::getSecIdByName(const QString &libSec)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+        return 0;
+    }
+
+    QSqlQuery query;
+    query.prepare("select idSec from `secteur` where libSec=:libSec");
+    query.bindValue(":libSec", libSec);
+
+    if (!query.exec()) {
+        return 0;
+    }
+    return (query.next()) ? query.value(0).toInt() : 0;
+}
+
+int Backend::getTypEmpIdByName(const QString &libTypEmp)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+        return 0;
+    }
+
+    QSqlQuery query;
+    query.prepare("select idTypEmp from `typeEmp` where libTypEmp=:libTypEmp");
+    query.bindValue(":libTypEmp", libTypEmp);
+
+    if (!query.exec()) {
+        return 0;
+    }
+    return (query.next()) ? query.value(0).toInt() : 0;
+}
+
+bool Backend::executeQuery(QSqlQuery &query)
+{
+    if (!query.exec()) {
+        return false;
+    }
     return true;
 }

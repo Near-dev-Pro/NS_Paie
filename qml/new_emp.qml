@@ -57,7 +57,7 @@ Page {
                             id: empDep
                             Layout.preferredWidth: (colLayId.width * 0.6)
                             Layout.alignment: Qt.AlignRight
-                            model: ["Marketing", "RH", "Finance", "Production"]
+                            model: MyApi.getListSectNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
 
                             delegate: ItemDelegate {
@@ -351,6 +351,39 @@ Page {
                         }
                     }
 
+                    // Ligne de l'annee d'arrivee
+                    RowLayout {
+                        id: yearRow
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 10 // Espacement entre le texte indicatif et le ComboBox
+
+                        // Texte indicatif
+                        Label {
+                            text: qsTr("Année d'arrivée:")
+                            Layout.preferredWidth: (colLayId.width * 0.4)
+                            font.pixelSize: 16
+                            color: Material.foreground
+                        }
+
+                        // SpinBox pour sélectionner une année
+                        SpinBox {
+                            id: year
+                            Layout.preferredWidth: (colLayId.width * 0.6)
+                            Layout.alignment: Qt.AlignRight
+                            implicitHeight: 40
+                            editable: true
+                            from: 2000
+                            value: new Date().getFullYear()
+                            to: 2100
+                            background: Rectangle {
+                                color: Material.background
+                                radius: 10
+                                border.color: Material.accent
+                                border.width: 1
+                            }
+                        }
+                    }
+
                     Item {
                         Layout.fillHeight: true
                     }
@@ -459,7 +492,7 @@ Page {
                             id: typEmp
                             Layout.preferredWidth: (subColLayId01.width * 0.6)
                             Layout.alignment: Qt.AlignRight
-                            model: ["Marketing", "RH", "Finance", "Production"]
+                            model: MyApi.getListTypEmpNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
 
                             delegate: ItemDelegate {
@@ -470,7 +503,7 @@ Page {
 
                                 width: typEmp.width
                                 contentItem: Text {
-                                    text: delegatetypEmp.model[typEmp.textRole]
+                                    text: delegateTypEmp.model[typEmp.textRole]
                                     color: Material.foreground
                                     font: typEmp.font
                                     elide: Text.ElideRight
@@ -631,7 +664,7 @@ Page {
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth: (subColLayId01.width * 0.6)
                             editable: true
-                            from: 100
+                            from: 0
                             to: 1000000
                             background: Rectangle {
                                 color: Material.background
@@ -914,11 +947,14 @@ Page {
                     anchors.top: sep1.bottom
                     anchors.topMargin: 10
                     anchors.horizontalCenter: parent.horizontalCenter
-                    onClicked: {
-                        // TODO
-                    }
+                    onClicked: addEmp()
                     contentItem: RowLayout {
                         spacing: 5
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
                         Image {
                             source: "qrc:/assets/images/x32/save.svg"
                             Layout.preferredWidth: 20
@@ -938,6 +974,10 @@ Page {
                             verticalAlignment: Text.AlignVCenter
                             elide: Text.ElideRight
                         }
+
+                        Item {
+                            Layout.fillWidth: true
+                        }
                     }
                     background: Rectangle {
                         implicitWidth: 100
@@ -950,5 +990,148 @@ Page {
                 }
             }
         }
+    }
+
+    function addEmp() {
+        let myObj = {};
+
+        // Logique de verification et de validation
+        let checkSect = new Promise((resolve, reject) => {
+            if (empDep.currentIndex < 0) {
+                reject("Veuillez selectionner un secteur valide!")
+            }
+            else {
+                myObj["sect"] = empDep.currentText
+                resolve("ok")
+            }
+        });
+
+        let checkName = new Promise((resolve, reject) => {
+            if (newEmpName.length < 1) {
+                reject("Veuillez saisir un nom valide!")
+            }
+            else {
+                myObj["empName"] = newEmpName.text
+                resolve("ok")
+            }
+        });
+
+        let checkCni = new Promise((resolve, reject) => {
+            if (numCni.length < 1) {
+                reject("Veuillez saisir un numéro de CNI valide!")
+            }
+            else {
+                myObj["numCni"] = numCni.text
+                resolve("ok")
+            }
+        });
+
+        let checkContact = new Promise((resolve, reject) => {
+            if (contact.length < 1) {
+                reject("Veuillez saisir un contact valide!")
+            }
+            else {
+                myObj["contact"] = contact.text
+                resolve("ok")
+            }
+        });
+
+        // 0 pour masculin et 1 pour feminin
+        let checkGender = new Promise((resolve, reject) => {
+            if (gender.currentIndex < 0) {
+                reject("Veuillez selectionner le sexe!")
+            }
+            else {
+                myObj["sex"] = gender.currentIndex
+                resolve("ok")
+            }
+        });
+
+        let checkCnps = new Promise((resolve, reject) => {
+            if (cnps.length < 1) {
+                reject("Veuillez saisir un numéro de CNPS valide!")
+            }
+            else {
+                myObj["numCnps"] = cnps.text
+                resolve("ok")
+            }
+        });
+
+        let checkNiu = new Promise((resolve, reject) => {
+            if (niu.length < 1) {
+                reject("Veuillez saisir un NIU valide!")
+            }
+            else {
+                myObj["niu"] = niu.text
+                resolve("ok")
+            }
+        });
+
+        let checkTypEmp = new Promise((resolve, reject) => {
+            if (typEmp.currentIndex < 0) {
+                reject("Veuillez selectionner un type d'emploi valide!")
+            }
+            else {
+                myObj["typEmp"] = typEmp.currentText
+                resolve("ok")
+            }
+        });
+
+        let checkCat = new Promise((resolve, reject) => {
+            if (cat.length < 1) {
+                reject("Veuillez saisir une catégorie valide!")
+            }
+            else {
+                myObj["cat"] = cat.text
+                resolve("ok")
+            }
+        });
+
+        let finalPromise = Promise.all([
+            checkSect,
+            checkName,
+            checkCni,
+            checkContact,
+            checkGender,
+            checkCnps,
+            checkNiu,
+            checkTypEmp,
+            checkCat
+        ])
+        .then((values) => {
+            // informations numeriques
+            myObj["year"] = year.value.toString()
+            myObj["salBase"] = salBase.value
+            myObj["prime"] = prime.value
+            myObj["salCot"] = salCot.value
+            myObj["salTax"] = salTax.value
+            myObj["salBrute"] = salBrute.value
+            myObj["irpp"] = irpp.value
+            myObj["tc"] = tc.value
+            myObj["cf"] = cf.value
+            myObj["cac"] = cac.value
+            myObj["rav"] = rav.value
+
+            if (MyApi.submitNewEmp(JSON.stringify(myObj))) {
+                year.value = new Date().getFullYear()
+                empDep.currentIndex = -1
+                newEmpName.text = ""
+                numCni.text = ""
+                contact.text = ""
+                gender.currentIndex = -1
+                cnps.text = ""
+                niu.text = ""
+                typEmp.currentIndex = -1
+                cat.text = ""
+                salBase.value = salBase.from
+                salCot.value = salCot.from
+                salTax.value = salTax.from
+                salBrute.value = salBrute.from
+                prime.value = irpp.value = tc.value = cf.value = cac.value = rav.value = 0
+            }
+        })
+        .catch((reason) => {
+            MyApi.sendWarning(reason)
+        })
     }
 }

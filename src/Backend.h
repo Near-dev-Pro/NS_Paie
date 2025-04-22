@@ -31,6 +31,14 @@ public:
     static Backend *instance();
     Q_INVOKABLE bool startPreviewDoc(QVariant);
     Q_INVOKABLE bool startPrintDoc(QPrinter *);
+    Q_INVOKABLE QSqlQueryModel *getListSectNoms();
+    Q_INVOKABLE QSqlQueryModel *getListTypEmpNoms();
+    Q_INVOKABLE QString getSecNomForShowBull(const QString &);
+    Q_INVOKABLE QSqlRelationalTableModel *getListEmp();
+    Q_INVOKABLE QSqlRelationalTableModel *getOneEmp(const QString &);
+    Q_INVOKABLE QSqlRelationalTableModel *getGroupOfEmp(const QString &);
+    Q_INVOKABLE void sendWarning(QString);
+    Q_INVOKABLE bool submitNewEmp(const QString &);
 
     virtual ~Backend();
 
@@ -45,10 +53,15 @@ private:
 
     // methodes
     void initialize();
+    int getSecIdByName(const QString &);
+    int getTypEmpIdByName(const QString &);
+    bool executeQuery(QSqlQuery &);
 
     // proprietes
     QSqlDatabase db;
     QVariant currentTargetPrint;
+    QSqlRelationalTableModel *listEmp, *oneEmp, *groupOfEmp;
+    QSqlQueryModel *listSectNom, *listTypEmpNom;
 };
 
 #endif // BACKEND_H
