@@ -5,7 +5,7 @@ Rectangle {
     id: footer
     width: parent.width
     height: 50
-    color: "#dddddd"
+    color: Material.background
 
     Label {
         anchors.centerIn: parent

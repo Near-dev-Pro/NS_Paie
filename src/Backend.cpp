@@ -190,6 +190,46 @@ QSqlRelationalTableModel *Backend::getOneEmp(const QString &theName)
     return (oneEmp->rowCount() > 0)? oneEmp: nullptr;
 }
 
+QVariantList Backend::getOneEmpForBull(const QString &theName)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    QSqlQueryModel getAllOfEmp(this);
+    QSqlQuery query = QSqlQuery(db);
+
+    query.prepare("SELECT sec.*, emp.*, per.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN permanent AS per ON emp.idEmp = per.idEmp JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON per.typEmp = typ.idTypEmp WHERE emp.libEmp = :libEmp");
+    query.bindValue(":libEmp", theName);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + db.lastError().text());
+    }
+
+    getAllOfEmp.setQuery(std::move(query));
+
+    QVariantList list;
+
+    if (getAllOfEmp.rowCount() <= 0) {
+        emit errorOccurred("Echec de la lecture des données de l'employé(e)!");
+        return list;
+    }
+
+    for (int row = 0; row < getAllOfEmp.rowCount(); ++row) {
+        QVariantMap rowData;
+
+        for (int col = 0; col < getAllOfEmp.columnCount(); ++col) {
+            QString columnName = getAllOfEmp.headerData(col, Qt::Horizontal).toString();
+            QVariant value = getAllOfEmp.data(getAllOfEmp.index(row, col));
+            rowData[columnName] = value;
+        }
+
+        list.append(rowData); // Ajouter chaque ligne sous forme de map dans la liste
+    }
+
+    return list;
+}
+
 QSqlRelationalTableModel *Backend::getGroupOfEmp(const QString &filterData)
 {
     QJsonDocument doc = QJsonDocument::fromJson(filterData.toUtf8());
@@ -341,6 +381,708 @@ bool Backend::submitNewEmp(const QString &empData)
     emit successOperation("Effectué avec succès!");
 
     return true;
+}
+
+bool Backend::updateEmpNom(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    QString newLibEmp = myObj["newName"].toString();
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans employe
+    query.prepare("update employe set libEmp=:newLib where libEmp=:curLib");
+    query.bindValue(":newLib", newLibEmp);
+    query.bindValue(":curLib", curLibEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpNumCni(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    QString newCni = myObj["newNumCni"].toString();
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans employe
+    query.prepare("update employe set numCni=:newCni where libEmp=:curLib");
+    query.bindValue(":newCni", newCni);
+    query.bindValue(":curLib", curLibEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpContact(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    QString newContact = myObj["newContact"].toString();
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans employe
+    query.prepare("update employe set contact=:newContact where libEmp=:curLib");
+    query.bindValue(":newContact", newContact);
+    query.bindValue(":curLib", curLibEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpTypEmp(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    QString newTypEmp = myObj["newTypEmp"].toString();
+    int idOfTypEmp = getTypEmpIdByName(newTypEmp);
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set typEmp=:newTyp where idEmp=:curId");
+    query.bindValue(":newTyp", idOfTypEmp);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        qDebug() << "BP: "<< query.lastError().text();
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpSalBase(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newSalBase"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set salBase=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpPrime(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newPri"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update prime set montPri=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpSalCot(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newSalCot"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set salCot=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpSalTax(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newSalTax"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set salTax=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpSalBrute(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newSalBrute"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set salBrute=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpIrpp(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newIrpp"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set irpp=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpTc(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newTc"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set tc=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpCf(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newCf"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set cf=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpCac(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newCac"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set cac=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+bool Backend::updateEmpRav(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString curLibEmp = myObj["currentName"].toString();
+    int newMont = myObj["newRav"].toInt();
+    int idOfEmp = getEmpIdByName(curLibEmp);
+
+    // Ouverture de la bd
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+
+        return false;
+    }
+
+    QSqlQuery query;
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+
+    //Insertion dans permanent
+    query.prepare("update permanent set rav=:newMont where idEmp=:curId");
+    query.bindValue(":newMont", newMont);
+    query.bindValue(":curId", idOfEmp);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+
+        return false;
+    }
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+
+        return false;
+    }
+    emit successOperation("Effectué avec succès!");
+
+    return true;
+}
+
+int Backend::getEmpIdByName(const QString &libEmp)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+        return 0;
+    }
+
+    QSqlQuery query;
+    query.prepare("select idEmp from `employe` where libEmp=:libEmp");
+    query.bindValue(":libEmp", libEmp);
+
+    if (!query.exec()) {
+        return 0;
+    }
+    return (query.next()) ? query.value(0).toInt() : 0;
 }
 
 int Backend::getSecIdByName(const QString &libSec)

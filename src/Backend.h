@@ -21,6 +21,8 @@
 #include <QString>
 #include <QTimer>
 #include <QVariant>
+#include <QVariantMap>
+#include <QVariantList>
 #include <QDir>
 
 class Backend : public QObject
@@ -36,9 +38,24 @@ public:
     Q_INVOKABLE QString getSecNomForShowBull(const QString &);
     Q_INVOKABLE QSqlRelationalTableModel *getListEmp();
     Q_INVOKABLE QSqlRelationalTableModel *getOneEmp(const QString &);
+    Q_INVOKABLE QVariantList getOneEmpForBull(const QString &);
     Q_INVOKABLE QSqlRelationalTableModel *getGroupOfEmp(const QString &);
     Q_INVOKABLE void sendWarning(QString);
     Q_INVOKABLE bool submitNewEmp(const QString &);
+    Q_INVOKABLE bool updateEmpNom(const QString &);
+    Q_INVOKABLE bool updateEmpNumCni(const QString &);
+    Q_INVOKABLE bool updateEmpContact(const QString &);
+    Q_INVOKABLE bool updateEmpTypEmp(const QString &);
+    Q_INVOKABLE bool updateEmpSalBase(const QString &);
+    Q_INVOKABLE bool updateEmpPrime(const QString &);
+    Q_INVOKABLE bool updateEmpSalCot(const QString &);
+    Q_INVOKABLE bool updateEmpSalTax(const QString &);
+    Q_INVOKABLE bool updateEmpSalBrute(const QString &);
+    Q_INVOKABLE bool updateEmpIrpp(const QString &);
+    Q_INVOKABLE bool updateEmpTc(const QString &);
+    Q_INVOKABLE bool updateEmpCf(const QString &);
+    Q_INVOKABLE bool updateEmpCac(const QString &);
+    Q_INVOKABLE bool updateEmpRav(const QString &);
 
     virtual ~Backend();
 
@@ -53,6 +70,7 @@ private:
 
     // methodes
     void initialize();
+    int getEmpIdByName(const QString &);
     int getSecIdByName(const QString &);
     int getTypEmpIdByName(const QString &);
     bool executeQuery(QSqlQuery &);

@@ -532,34 +532,44 @@ Page {
             }
         })
         .then((finalName) => {
+            let fullData = MyApi.getOneEmpForBull(theEmpName)
             const d = new Date();
             const month = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Decembre"];
             let component = Qt.createComponent(`bull${finalName}.qml`);
+            let montPrime = fullData[0].montPri
+            let montSalBrute = fullData[0].salBase+montPrime
+            let totImp = fullData[0].irpp+fullData[0].tc+fullData[0].cf+fullData[0].cac+fullData[0].rav
+            let montCotCnps = fullData[0].salCot * 0.042
+            let montTotRet = totImp+montCotCnps
+            let monAnciennette = Number(d.getFullYear() - fullData[0].dateEmp - 1)
 
             let bullWin = component.createObject(
                 parent,
                 {
                     theData: {
-                        numBull: `${Number(0).toString().padStart(3, "0")}/${d.getFullYear().toString()}/${finalName}/bla/bla`,
+                        numBull: `${Number(0).toString().padStart(3, "0")}/${d.getFullYear().toString()}/${finalName}`,
                         curMonth: month[d.getMonth()],
-                              empName: "",
-                              numCnps: "",
-                              numMatInt: Number(24).toString().padStart(3, "0"),
-                              numNiu: "",
-                              libTypEmp: "",
-                              cate: "",
-                              salBase: Number(0).toString(),
-                              prime: Number(0).toString(),
-                              salCot: Number(0).toString(),
-                              salTax: Number(0).toString(),
-                              salBrute: Number(0).toString(),
-                              irpp: Number(0).toString(),
-                              tc: Number(0).toString(),
-                              cf: Number(0).toString(),
-                              cac: Number(0).toString(),
-                              rav: Number(0).toString(),
-                              cotCnps: Number(0).toString(),
-                              nap: Number(0).toString()
+                        empName: fullData[0].libEmp,
+                        numCnps: fullData[0].numCnps,
+                        numMatInt: Number(fullData[0].idEmp).toString().padStart(3, "0"),
+                        numNiu: fullData[0].niu,
+                        libTypEmp: fullData[0].libTypEmp,
+                        cate: fullData[0].cate,
+                        anciennette: monAnciennette,
+                        salBase: Number(fullData[0].salBase).toString(),
+                        prime: Number(montPrime).toString(),
+                        salCot: Number(fullData[0].salCot).toString(),
+                        salTax: Number(fullData[0].salTax).toString(),
+                        salBrute: Number(montSalBrute).toString(),
+                        irpp: Number(fullData[0].irpp).toString(),
+                        tc: Number(fullData[0].tc).toString(),
+                        cf: Number(fullData[0].cf).toString(),
+                        cac: Number(fullData[0].cac).toString(),
+                        rav: Number(fullData[0].rav).toString(),
+                        totalImpot: Number(totImp).toString(),
+                        cotCnps: Number(montCotCnps).toString(),
+                        totalRet: Number(montTotRet),
+                        nap: Number(montSalBrute-montTotRet).toString()
                     }
                 }
             );

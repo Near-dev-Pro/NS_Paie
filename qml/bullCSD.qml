@@ -16,6 +16,8 @@ Window {
 
     property int theId: 0
     property int docType: 0
+    property var theData: {
+    }
 
     Shortcut {
         sequence: StandardKey.Print
@@ -51,6 +53,17 @@ Window {
                 delRegEn: "Adamawa Reginal Delegation of heath"
                 delDepFr: "District de santé de Ngaoundéré Urbain"
                 delDepEn: "Ngaoundere Urbain Heath district"
+                headerData: {
+                    "numBull": theData.numBull,
+                    "curMonth": theData.curMonth,
+                    "empName": theData.empName,
+                    "numCnps": theData.numCnps,
+                    "numMatInt": theData.numMatInt,
+                    "numNiu": theData.numNiu,
+                    "libTypEmp": theData.libTypEmp,
+                    "cate": theData.cate,
+                    "anciennette": theData.anciennette
+                }
             }
 
             Rectangle {
@@ -173,7 +186,6 @@ Window {
 
                 Rectangle {
                     id: values
-                    // anchors.top: subTitle.bottom
                     anchors.left: titles.right
                     anchors.leftMargin: 75
                     width: 210
@@ -188,7 +200,9 @@ Window {
                         spacing: 5
 
                         Label {
-                            text: "60000"
+                            Component.onCompleted: {
+                                text = theData.salBase
+                            }
                             font.pixelSize: 16
                         }
                         Label {
@@ -197,67 +211,93 @@ Window {
                             font.bold: true
                         }
                         Label {
-                            text: "4000"
+                            Component.onCompleted: {
+                                text = theData.prime
+                            }
                             font.pixelSize: 16
                         }
                         Label {
-                            text: "60000"
+                            Component.onCompleted: {
+                                text = theData.salCot
+                            }
                             font.pixelSize: 16
                         }
                         Label {
-                            text: "60000"
+                            Component.onCompleted: {
+                                text = theData.salTax
+                            }
                             font.pixelSize: 16
                         }
                         Label {
-                            text: "60000"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: ""
-                            font.pixelSize: 16
-                            font.bold: true
-                        }
-                        Label {
-                            text: "0"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "0"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "600"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "0"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "750"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "1350"
-                            font.bold: true
+                            Component.onCompleted: {
+                                text = theData.salBrute
+                            }
                             font.pixelSize: 16
                         }
                         Label {
                             text: ""
+                            font.pixelSize: 16
+                            font.bold: true
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.irpp
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.tc
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.cf
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.cac
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.rav
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.totalImpot
+                            }
                             font.bold: true
                             font.pixelSize: 16
                         }
                         Label {
-                            text: "2520"
-                            font.pixelSize: 16
-                        }
-                        Label {
-                            text: "3870"
+                            text: ""
                             font.bold: true
                             font.pixelSize: 16
                         }
                         Label {
-                            text: "56130 FCFA"
+                            Component.onCompleted: {
+                                text = theData.cotCnps
+                            }
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.totalRet
+                            }
+                            font.bold: true
+                            font.pixelSize: 16
+                        }
+                        Label {
+                            Component.onCompleted: {
+                                text = theData.nap
+                            }
                             font.bold: true
                             font.pixelSize: 16
                         }

@@ -23,6 +23,17 @@ Rectangle {
     property string arrondEn: ""
     property string nameFr: ""
     property string nameEn: ""
+    property var headerData: {
+        "numBull": "",
+        "curMonth": "",
+        "empName": "",
+        "numCnps": "",
+        "numMatInt": "000",
+        "numNiu": "",
+        "libTypEmp": "",
+        "cate": "",
+        "anciennette": ""
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -211,48 +222,66 @@ Rectangle {
 
         Label {
             Layout.topMargin: 10
-            text: "Bulletin de paye: N°"
+            Component.onCompleted: {
+                text = "Bulletin de paye: N° "+headerData.numBull
+            }
             font.bold: true
             font.pixelSize: 20
             Layout.alignment: Qt.AlignHCenter
         }
         Label {
-            text: "Mois de:"
+            Component.onCompleted: {
+                text = "Mois de: "+headerData.curMonth
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "Nom du travailleur:"
+            Component.onCompleted: {
+                text = "Nom du travailleur: "+headerData.empName
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "N° CNPS:"
+            Component.onCompleted: {
+                text = "N° CNPS: "+headerData.numCnps
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "N° matricule interne:"
+            Component.onCompleted: {
+                text = "N° matricule interne: "+headerData.numMatInt
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "NIU:"
+            Component.onCompleted: {
+                text = "NIU: "+headerData.numNiu
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "Type d'emploi:"
+            Component.onCompleted: {
+                text = "Type d'emploi: "+headerData.libTypEmp
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "Catégorie:"
+            Component.onCompleted: {
+                text = "Catégorie: "+headerData.cate
+            }
             font.bold: true
             font.pixelSize: 16
         }
         Label {
-            text: "Anciennetté:"
+            Component.onCompleted: {
+                text = "Anciennetté: "+headerData.anciennette+" an(s)"
+            }
             font.bold: true
             font.pixelSize: 16
         }
