@@ -17,7 +17,7 @@ Page {
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
-                implicitHeight: (subColLayId01.implicitHeight + subColLayId01.spacing + sep1.height + 10 + saveBtn1.implicitHeight)
+                implicitHeight: (colLayId.implicitHeight + colLayId.spacing + sep1.height + 10 + saveBtn1.implicitHeight)
 
                 // Colonne pour infos de base
                 ColumnLayout {
@@ -384,40 +384,16 @@ Page {
                         }
                     }
 
-                    Item {
-                        Layout.fillHeight: true
-                    }
-                }
-
-                ColumnLayout {
-                    id: subColLayId01
-                    width: parent.width * 0.5
-                    anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.rightMargin: 20
-                    spacing: 10
-
-                    Label {
-                        id: titreEmpPerm
-                        text: qsTr("Informations détaillées")
-                        color: Style.placeholder
-                        font.pixelSize: 22
-                        font.bold: true
-                        Layout.topMargin: 15
-                        Layout.alignment: Qt.AlignCenter
-                    }
-
                     // Ligne du numero de la CNPS
                     RowLayout {
                         id: numCnpsRow
-                        Layout.topMargin: 20
                         Layout.alignment: Qt.AlignHCenter
                         spacing: 10 // Espacement entre le texte et le champ de saisie
 
                         // Texte indicatif
                         Label {
                             text: qsTr("Numéro CNPS:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            Layout.preferredWidth: (colLayId.width * 0.4)
                             font.pixelSize: 16
                             color: Material.foreground
                         }
@@ -429,7 +405,7 @@ Page {
                             font.pixelSize: 20
                             Layout.alignment: Qt.AlignHCenter
                             placeholderTextColor: Style.placeholder
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            Layout.preferredWidth: (colLayId.width * 0.6)
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             background: Rectangle {
@@ -450,7 +426,7 @@ Page {
                         // Texte indicatif
                         Label {
                             text: qsTr("NIU:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            Layout.preferredWidth: (colLayId.width * 0.4)
                             font.pixelSize: 16
                             color: Material.foreground
                         }
@@ -462,7 +438,7 @@ Page {
                             font.pixelSize: 20
                             Layout.alignment: Qt.AlignHCenter
                             placeholderTextColor: Style.placeholder
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            Layout.preferredWidth: (colLayId.width * 0.6)
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             background: Rectangle {
@@ -483,14 +459,14 @@ Page {
                         // Texte indicatif
                         Label {
                             text: qsTr("Type d'emploi:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            Layout.preferredWidth: (colLayId.width * 0.4)
                             font.pixelSize: 16
                             color: Material.foreground
                         }
 
                         ComboBox {
                             id: typEmp
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            Layout.preferredWidth: (colLayId.width * 0.6)
                             Layout.alignment: Qt.AlignRight
                             model: MyApi.getListTypEmpNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
@@ -589,7 +565,7 @@ Page {
                         // Texte indicatif
                         Label {
                             text: qsTr("Catégorie:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            Layout.preferredWidth: (colLayId.width * 0.4)
                             font.pixelSize: 16
                             color: Material.foreground
                         }
@@ -601,7 +577,7 @@ Page {
                             font.pixelSize: 20
                             Layout.alignment: Qt.AlignHCenter
                             placeholderTextColor: Style.placeholder
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            Layout.preferredWidth: (colLayId.width * 0.6)
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             background: Rectangle {
@@ -613,9 +589,33 @@ Page {
                         }
                     }
 
+                    Item {
+                        Layout.fillHeight: true
+                    }
+                }
+
+                ColumnLayout {
+                    id: subColLayId01
+                    width: parent.width * 0.5
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20
+                    spacing: 10
+
+                    Label {
+                        id: titreEmpPerm
+                        text: qsTr("Informations détaillées")
+                        color: Style.placeholder
+                        font.pixelSize: 22
+                        font.bold: true
+                        Layout.topMargin: 15
+                        Layout.alignment: Qt.AlignCenter
+                    }
+
                     // Ligne du salaire de base
                     RowLayout {
                         id: salBaseRow
+                        Layout.topMargin: 20
                         Layout.alignment: Qt.AlignHCenter
                         spacing: 10 // Espacement entre le texte et le champ de saisie
 
@@ -722,37 +722,6 @@ Page {
 
                         SpinBox {
                             id: salTax
-                            implicitHeight: 40
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
-                            editable: true
-                            from: 100
-                            to: 1000000
-                            background: Rectangle {
-                                color: Material.background
-                                radius: 10
-                                border.color: Material.accent
-                                border.width: 1
-                            }
-                        }
-                    }
-
-                    // Ligne du salaire de brute
-                    RowLayout {
-                        id: salBruteRow
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: 10 // Espacement entre le texte et le champ de saisie
-
-                        // Texte indicatif
-                        Label {
-                            text: qsTr("Salaire brute:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
-                            font.pixelSize: 16
-                            color: Material.foreground
-                        }
-
-                        SpinBox {
-                            id: salBrute
                             implicitHeight: 40
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth: (subColLayId01.width * 0.6)
@@ -933,7 +902,7 @@ Page {
                     id: sep1
                     height: 2
                     width: (parent.width * 0.7)
-                    anchors.top: subColLayId01.bottom
+                    anchors.top: colLayId.bottom
                     anchors.topMargin: 10
                     anchors.horizontalCenter: parent.horizontalCenter
                     color: Style.shadow
@@ -1100,12 +1069,11 @@ Page {
         ])
         .then((values) => {
             // informations numeriques
-            myObj["year"] = year.value.toString()
+            myObj["anArriv"] = year.value.toString()
             myObj["salBase"] = salBase.value
             myObj["prime"] = prime.value
             myObj["salCot"] = salCot.value
             myObj["salTax"] = salTax.value
-            myObj["salBrute"] = salBrute.value
             myObj["irpp"] = irpp.value
             myObj["tc"] = tc.value
             myObj["cf"] = cf.value
@@ -1126,7 +1094,6 @@ Page {
                 salBase.value = salBase.from
                 salCot.value = salCot.from
                 salTax.value = salTax.from
-                salBrute.value = salBrute.from
                 prime.value = irpp.value = tc.value = cf.value = cac.value = rav.value = 0
             }
         })

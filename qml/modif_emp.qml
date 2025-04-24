@@ -67,7 +67,7 @@ Page {
 
                                 width: emp.width
                                 contentItem: Text {
-                                    text: delegateEmp.model[emp.textRole]
+                                    text: emp.model.data(emp.model.index(index, 0))
                                     color: Material.foreground
                                     font: emp.font
                                     elide: Text.ElideRight
@@ -243,29 +243,6 @@ Page {
                         }
                     }
 
-                    Item {
-                        Layout.fillHeight: true
-                    }
-                }
-
-                ColumnLayout {
-                    id: subColLayId01
-                    width: parent.width * 0.5
-                    anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.rightMargin: 20
-                    spacing: 10
-
-                    Label {
-                        id: titreEmpPerm
-                        text: qsTr("Informations détaillées")
-                        color: Style.placeholder
-                        font.pixelSize: 22
-                        font.bold: true
-                        Layout.topMargin: 15
-                        Layout.alignment: Qt.AlignCenter
-                    }
-
                     // Ligne du type d'emploi
                     RowLayout {
                         id: typEmpRow
@@ -275,14 +252,14 @@ Page {
                         // Texte indicatif
                         Label {
                             text: qsTr("Type d'emploi:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            Layout.preferredWidth: (colLayId.width * 0.4)
                             font.pixelSize: 16
                             color: Material.foreground
                         }
 
                         ComboBox {
                             id: typEmp
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            Layout.preferredWidth: (colLayId.width * 0.6)
                             Layout.alignment: Qt.AlignRight
                             model: MyApi.getListTypEmpNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
@@ -370,6 +347,29 @@ Page {
                                 }
                             }
                         }
+                    }
+
+                    Item {
+                        Layout.fillHeight: true
+                    }
+                }
+
+                ColumnLayout {
+                    id: subColLayId01
+                    width: parent.width * 0.5
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.rightMargin: 20
+                    spacing: 10
+
+                    Label {
+                        id: titreEmpPerm
+                        text: qsTr("Informations détaillées")
+                        color: Style.placeholder
+                        font.pixelSize: 22
+                        font.bold: true
+                        Layout.topMargin: 15
+                        Layout.alignment: Qt.AlignCenter
                     }
 
                     // Ligne du salaire de base
@@ -481,37 +481,6 @@ Page {
 
                         SpinBox {
                             id: salTax
-                            implicitHeight: 40
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: (subColLayId01.width * 0.6)
-                            editable: true
-                            from: 0
-                            to: 1000000
-                            background: Rectangle {
-                                color: Material.background
-                                radius: 10
-                                border.color: Material.accent
-                                border.width: 1
-                            }
-                        }
-                    }
-
-                    // Ligne du salaire de brute
-                    RowLayout {
-                        id: salBruteRow
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: 10 // Espacement entre le texte et le champ de saisie
-
-                        // Texte indicatif
-                        Label {
-                            text: qsTr("Salaire brute:")
-                            Layout.preferredWidth: (subColLayId01.width * 0.4)
-                            font.pixelSize: 16
-                            color: Material.foreground
-                        }
-
-                        SpinBox {
-                            id: salBrute
                             implicitHeight: 40
                             Layout.alignment: Qt.AlignHCenter
                             Layout.preferredWidth: (subColLayId01.width * 0.6)
@@ -770,6 +739,7 @@ Page {
                     else {
                         // Important: Il faut mettre a jour le nom...
                         myObj["currentName"] = newEmpName.text
+                        emp.model = MyApi.getListEmp()
                         newEmpName.text = "" // Puis on peut effacer
                         resolve("ok")
                     }
@@ -874,20 +844,6 @@ Page {
                 }
             });
 
-            let checkSalBrute = new Promise((resolve, reject) => {
-                if (salBrute.value > 0) {
-                    myObj["newSalBrute"] = salBrute.value
-
-                    if (!MyApi.updateEmpSalBrute(JSON.stringify(myObj))) {
-                        reject("Le salaire brute n'a pas été mis à jour!")
-                    }
-                    else {
-                        salBrute.value = salBrute.from
-                        resolve("ok")
-                    }
-                }
-            });
-
             let checkIrpp = new Promise((resolve, reject) => {
                 if (irpp.value > 0) {
                     myObj["newIrpp"] = irpp.value
@@ -967,7 +923,6 @@ Page {
                 checkPrime,
                 checkSalCot,
                 checkSalTax,
-                checkSalBrute,
                 checkIrpp,
                 checkTc,
                 checkCf,

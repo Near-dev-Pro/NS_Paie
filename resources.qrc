@@ -44,6 +44,11 @@
         <file>assets/images/x32/global.svg</file>
         <file>assets/images/logos/logo.svg</file>
         <file>assets/images/logos/myIco.ico</file>
+        <file>qml/show_emp.qml</file>
+        <file>assets/images/x32/show_emp.svg</file>
+        <file>assets/images/x32/print.svg</file>
+        <file>qml/print.qml</file>
+        <file>assets/images/x32/utils.svg</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>

@@ -60,6 +60,49 @@ Page {
 
             ToolSeparator{}
 
+            ToolButton {
+                id: toolPrint
+                property string targetIcon: "qrc:/assets/images/x32/utils.svg"
+                property string targetPage: "qrc:/qml/print.qml"
+                property Item currentItemStkView
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === toolPrint.currentItemStkView ? Style.background : "transparent"
+                }
+
+                onClicked: {
+                    currentItemId.currentPage = toolPrint.targetPage
+                    toolPrint.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                }
+
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Image {
+                        source: toolPrint.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
+                    }
+                    Label {
+                        text: qsTr("Utils")
+                        color: Style.text
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
+
             Item {
                 Layout.fillWidth: true
             }

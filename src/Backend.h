@@ -16,8 +16,6 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QSqlRecord>
-#include <QSqlRelationalTableModel>
-#include <QSqlTableModel>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
@@ -36,10 +34,13 @@ public:
     Q_INVOKABLE QSqlQueryModel *getListSectNoms();
     Q_INVOKABLE QSqlQueryModel *getListTypEmpNoms();
     Q_INVOKABLE QString getSecNomForShowBull(const QString &);
-    Q_INVOKABLE QSqlRelationalTableModel *getListEmp();
-    Q_INVOKABLE QSqlRelationalTableModel *getOneEmp(const QString &);
+    Q_INVOKABLE QSqlQueryModel *getListEmp();
+    Q_INVOKABLE QSqlQueryModel *getOneEmp(const QString &);
+    Q_INVOKABLE QSqlQueryModel *getFullHis(int start = 0, int year = QDate().year());
+    Q_INVOKABLE QSqlQueryModel *getHisOfEmp(const QString &);
+    Q_INVOKABLE QSqlQueryModel *getGroupOfEmp(const QString &, bool isHis = false);
     Q_INVOKABLE QVariantList getOneEmpForBull(const QString &);
-    Q_INVOKABLE QSqlRelationalTableModel *getGroupOfEmp(const QString &);
+    Q_INVOKABLE void insertInHis(QVariantList &);
     Q_INVOKABLE void sendWarning(QString);
     Q_INVOKABLE bool submitNewEmp(const QString &);
     Q_INVOKABLE bool updateEmpNom(const QString &);
@@ -50,7 +51,6 @@ public:
     Q_INVOKABLE bool updateEmpPrime(const QString &);
     Q_INVOKABLE bool updateEmpSalCot(const QString &);
     Q_INVOKABLE bool updateEmpSalTax(const QString &);
-    Q_INVOKABLE bool updateEmpSalBrute(const QString &);
     Q_INVOKABLE bool updateEmpIrpp(const QString &);
     Q_INVOKABLE bool updateEmpTc(const QString &);
     Q_INVOKABLE bool updateEmpCf(const QString &);
@@ -78,8 +78,7 @@ private:
     // proprietes
     QSqlDatabase db;
     QVariant currentTargetPrint;
-    QSqlRelationalTableModel *listEmp, *oneEmp, *groupOfEmp;
-    QSqlQueryModel *listSectNom, *listTypEmpNom;
+    QSqlQueryModel *listSectNom, *listTypEmpNom, *listEmp, *oneEmp, *groupOfEmp, *getAllOfEmp, *histOfEmp, *fullHis;
 };
 
 #endif // BACKEND_H

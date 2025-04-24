@@ -103,6 +103,51 @@ Page {
                 }
             }
 
+            ToolSeparator{}
+
+            ToolButton {
+                id: toolShowEmp
+                property string targetIcon: "qrc:/assets/images/x32/show_emp.svg"
+                property string targetPage: "qrc:/qml/show_emp.qml"
+                property Item currentItemStkView
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === toolShowEmp.currentItemStkView ? Style.background : "transparent"
+                }
+
+                onClicked: {
+                    currentItemId.currentPage = toolShowEmp.targetPage
+                    toolShowEmp.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                }
+
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Image {
+                        source: toolShowEmp.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
+                    }
+                    Label {
+                        text: qsTr("Afficher")
+                        color: Style.text
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
+
             Item {
                 Layout.fillWidth: true
             }

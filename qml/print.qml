@@ -17,20 +17,19 @@ Page {
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
-                implicitHeight: (colLayId2.implicitHeight + colLayId2.spacing)
+                implicitHeight: colLayId.implicitHeight
 
                 ColumnLayout {
-                    id: colLayId2
-                    width: parent.width * 0.7
+                    id: colLayId
+                    width: parent.width
                     anchors.fill: parent
                     anchors.leftMargin: 10
                     anchors.rightMargin: 10
                     spacing: 10
 
-                    // Contenu exemple (modifiable)
                     Label {
-                        id: titreHist
-                        text: qsTr("Historique des paiements d'un employé")
+                        id: titreCoreData
+                        text: qsTr("Liste des employés par secteurs!")
                         color: Style.placeholder
                         font.pixelSize: 22
                         font.bold: true
@@ -38,56 +37,47 @@ Page {
                         Layout.alignment: Qt.AlignCenter
                     }
 
-                    // Ligne du choix de l'employe
+                    // Ligne du choix du secteur
                     RowLayout {
                         id: empRow
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredWidth: (colLayId2.width * 0.5)
-                        Layout.maximumWidth: (colLayId2.width * 0.7)
+                        Layout.alignment: Qt.AlignLeft
+                        Layout.preferredWidth: (colLayId.width * 0.3)
+                        Layout.maximumWidth: (colLayId.width * 0.4)
                         spacing: 10 // Espacement entre le texte et le ComboBox
 
-                        // Texte indicatif
-                        Label {
-                            text: qsTr("Choisissez l'employé:")
-                            Layout.preferredWidth: (empRow.width * 0.4)
-                            font.pixelSize: 16
-                            color: Material.foreground
-                        }
-
                         ComboBox {
-                            id: emp
+                            id: empDep
                             Layout.preferredWidth: (empRow.width * 0.6)
-                            Layout.alignment: Qt.AlignRight
-                            model: MyApi.getListEmp()
+                            model: MyApi.getListSectNoms()
                             currentIndex: -1 // Aucun élément sélectionné par défaut
 
                             delegate: ItemDelegate {
-                                id: delegateEmp
+                                id: delegateDep
 
                                 required property var model
                                 required property int index
 
-                                width: emp.width
+                                width: empDep.width
                                 contentItem: Text {
-                                    text: emp.model.data(emp.model.index(index, 0))
+                                    text: delegateDep.model[empDep.textRole]
                                     color: Material.foreground
-                                    font: emp.font
+                                    font: empDep.font
                                     elide: Text.ElideRight
                                     verticalAlignment: Text.AlignVCenter
                                 }
-                                highlighted: emp.highlightedIndex === index
+                                highlighted: empDep.highlightedIndex === index
                             }
 
                             indicator: Canvas {
                                 id: canvas
-                                x: emp.width - width - emp.rightPadding
-                                y: emp.topPadding + (emp.availableHeight - height) / 2
+                                x: empDep.width - width - empDep.rightPadding
+                                y: empDep.topPadding + (empDep.availableHeight - height) / 2
                                 width: 12
                                 height: 8
                                 contextType: "2d"
 
                                 Connections {
-                                    target: emp
+                                    target: empDep
                                     function onPressedChanged() { canvas.requestPaint(); }
                                 }
 
@@ -104,10 +94,10 @@ Page {
 
                             contentItem: Text {
                                 leftPadding: 15
-                                rightPadding: emp.indicator.width + emp.spacing
+                                rightPadding: empDep.indicator.width + empDep.spacing
 
-                                text: emp.displayText
-                                font: emp.font
+                                text: empDep.displayText
+                                font: empDep.font
                                 color: Style.text
                                 verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
@@ -118,21 +108,21 @@ Page {
                                 implicitHeight: 40
                                 color: Material.background
                                 border.color: Material.accent
-                                border.width: emp.visualFocus ? 2 : 1
+                                border.width: empDep.visualFocus ? 2 : 1
                                 radius: 10
                             }
 
                             popup: Popup {
-                                y: emp.height - 1
-                                width: emp.width
+                                y: empDep.height - 1
+                                width: empDep.width
                                 implicitHeight: contentItem.implicitHeight
                                 padding: 1
 
                                 contentItem: ListView {
                                     clip: true
                                     implicitHeight: contentHeight
-                                    model: emp.popup.visible ? emp.delegateModel : null
-                                    currentIndex: emp.highlightedIndex
+                                    model: empDep.popup.visible ? empDep.delegateModel : null
+                                    currentIndex: empDep.highlightedIndex
 
                                     ScrollIndicator.vertical: ScrollIndicator { }
                                 }
@@ -144,54 +134,57 @@ Page {
                                 }
                             }
                         }
-                    }
 
-                    Button {
-                        id: searchEmp
-                        text: qsTr("Obtenir l'hitorique")
-                        font.bold: true
-                        Layout.alignment: Qt.AlignHCenter
-                        onClicked: showHisOrOneEmp()
-                        contentItem: RowLayout {
-                            spacing: 5
-                            Image {
-                                source: "qrc:/assets/images/x32/person_search.svg"
-                                Layout.preferredWidth: 20
-                                Layout.preferredHeight: 20
-                                layer.enabled: true
-                                layer.effect: MultiEffect {
-                                    brightness: 1.0
-                                    saturation: 1.0
-                                    colorization: 1.0
-                                    colorizationColor: Material.foreground
+                        Button {
+                            id: saveBtn1
+                            text: qsTr("Charger")
+                            font.bold: true
+                            Layout.preferredWidth: (empDep.width * 0.4)
+                            onClicked: showEmpOfDep()
+                            contentItem: RowLayout {
+                                spacing: 5
+
+                                Item {
+                                    Layout.fillWidth: true
+                                }
+
+                                Image {
+                                    source: "qrc:/assets/images/x32/show_emp.svg"
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 20
+                                    layer.enabled: true
+                                    layer.effect: MultiEffect {
+                                        brightness: 1.0
+                                        colorization: 1.0
+                                        colorizationColor: Material.foreground
+                                    }
+                                }
+                                Text {
+                                    text: saveBtn1.text
+                                    font: saveBtn1.font
+                                    color: Material.foreground
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
                                 }
                             }
-                            Text {
-                                text: searchEmp.text
-                                font: searchEmp.font
-                                color: Material.foreground
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
+                            background: Rectangle {
+                                implicitWidth: 100
+                                implicitHeight: 40
+                                border.color: Material.accent
+                                border.width: 1
+                                radius: 25
+                                color: Material.accent
                             }
                         }
-                        background: Rectangle {
-                            implicitWidth: 100
-                            implicitHeight: 40
-                            border.color: Material.accent
-                            border.width: 1
-                            radius: 25
-                            color: Style.accent
-                        }
-                    }
 
-                    // Separateur
-                    Rectangle {
-                        id: sep1
-                        height: 2
-                        width: (parent.width * 0.7)
-                        Layout.alignment: Qt.AlignHCenter
-                        color: Style.shadow
+                        Item {
+                            Layout.fillWidth: true
+                        }
                     }
 
                     Label {
@@ -206,8 +199,8 @@ Page {
                     // Ligne du choix du table du contenu
                     ColumnLayout {
                         id: listContentColumn
-                        Layout.preferredWidth: colLayId2.width
-                        Layout.maximumWidth: colLayId2.width
+                        Layout.preferredWidth: colLayId.width
+                        Layout.maximumWidth: colLayId.width
                         spacing: 0
 
                         HorizontalHeaderView {
@@ -248,7 +241,17 @@ Page {
                             visible: (partialHistTV.model !== null && partialHistTV.rows > 0)
                             boundsBehavior: Flickable.StopAtBounds
                             columnWidthProvider: function (column) {
-                                return partialHistTV.width / 9;
+                                // Colonnes à masquer (par groupe)
+                                const hiddenColumnsGroup1 = [1, 2, 3, 6, 8, 9, 11];
+                                const hiddenColumnsGroup2 = [12, 13, 14, 15, 16, 17, 18];
+                                const hiddenColumnsGroup3 = [20, 22, 23, 24, 25, 26];
+
+                                if (hiddenColumnsGroup1.includes(column) || hiddenColumnsGroup2.includes(column) || hiddenColumnsGroup3.includes(column)) {
+                                    return 0; // Masquer la colonne
+                                }
+
+                                // Largeur par défaut pour les autres colonnes
+                                return partialHistTV.width / 8;
                             }
                             model: null
 
@@ -265,7 +268,7 @@ Page {
                                     anchors.fill: parent
                                     anchors.leftMargin: 5
                                     wrapMode: TextField.WordWrap
-                                    width: (partialHistTV.width / 9)
+                                    width: (partialHistTV.width / 8)
                                     elide: Text.ElideRight
                                 }
                             }
@@ -276,12 +279,15 @@ Page {
         }
     }
 
-    function showHisOrOneEmp() {
-        if (emp.currentIndex < 0) {
-            MyApi.sendWarning("Veuillez selectionner l'employé!")
+    function showEmpOfDep() {
+        if (empDep.currentIndex < 0) {
+            MyApi.sendWarning("Veuillez selectionner le secteur!")
         }
         else {
-            partialHistTV.model = MyApi.getHisOfEmp(emp.currentValue)
+            let myObj = {};
+            myObj["sect"] = empDep.currentValue
+
+            partialHistTV.model = MyApi.getGroupOfEmp(JSON.stringify(myObj), true)
         }
     }
 }

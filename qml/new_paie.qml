@@ -484,6 +484,10 @@ Page {
                                 x: moreActions.x + moreActions.width // Positionne le menu à droite de l'icône
                                 y: moreActions.y // Aligne le menu verticalement avec l'icône
                                 MenuItem {
+                                    text: qsTr("Payer!")
+                                    onTriggered: searchSecForBullPaie(listView.model.data(listView.model.index(index, 0)), false)
+                                }
+                                MenuItem {
                                     text: qsTr("Aperçu du bulletin de paie")
                                     onTriggered: searchSecForBullPaie(listView.model.data(listView.model.index(index, 0)))
                                 }
@@ -516,12 +520,12 @@ Page {
         let myObj = {};
         myObj["sect"] = departmentFilter.currentValue
         myObj["sex"] = genderFilter.currentIndex
-        myObj["year"] = yearFilter.value.toString()
+        myObj["anArriv"] = yearFilter.value.toString()
 
         listView.model = MyApi.getGroupOfEmp(JSON.stringify(myObj))
     }
 
-    function searchSecForBullPaie(theEmpName) {
+    function searchSecForBullPaie(theEmpName, isOverview = true) {
         new Promise((resolve, reject) => {
             let correctBullname = MyApi.getSecNomForShowBull(theEmpName)
             if (correctBullname.length > 0) {
@@ -532,7 +536,11 @@ Page {
             }
         })
         .then((finalName) => {
-            let fullData = MyApi.getOneEmpForBull(theEmpName)
+            let tempObj = {}
+            tempObj["empName"] = theEmpName
+            tempObj["isOverview"] = isOverview
+
+            let fullData = MyApi.getOneEmpForBull(JSON.stringify(tempObj))
             const d = new Date();
             const month = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Decembre"];
             let component = Qt.createComponent(`bull${finalName}.qml`);
@@ -541,13 +549,14 @@ Page {
             let totImp = fullData[0].irpp+fullData[0].tc+fullData[0].cf+fullData[0].cac+fullData[0].rav
             let montCotCnps = fullData[0].salCot * 0.042
             let montTotRet = totImp+montCotCnps
-            let monAnciennette = Number(d.getFullYear() - fullData[0].dateEmp - 1)
+            let monAnciennette = Number(d.getFullYear() - fullData[0].anArriv - 1)
+            let bullNbr = (isOverview)? 0: fullData[0].lastHisId
 
             let bullWin = component.createObject(
                 parent,
                 {
                     theData: {
-                        numBull: `${Number(0).toString().padStart(3, "0")}/${d.getFullYear().toString()}/${finalName}`,
+                        numBull: `${Number(bullNbr).toString().padStart(3, "0")}/${d.getFullYear().toString()}/${finalName}`,
                         curMonth: month[d.getMonth()],
                         empName: fullData[0].libEmp,
                         numCnps: fullData[0].numCnps,

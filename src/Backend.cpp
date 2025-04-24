@@ -25,6 +25,9 @@ Backend::~Backend()
     delete listEmp;
     delete oneEmp;
     delete groupOfEmp;
+    delete getAllOfEmp;
+    delete histOfEmp;
+    delete fullHis;
 
     //Fermeture de la connexion a la bd
     db.close();
@@ -147,109 +150,227 @@ QString Backend::getSecNomForShowBull(const QString &theEmpName)
     return (query.next()) ? query.value(0).toString() : "";
 }
 
-QSqlRelationalTableModel *Backend::getListEmp()
+QSqlQueryModel *Backend::getListEmp()
 {
     if (!db.open()) {
         emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
     }
 
     //Assignantion du pointeur de la liste des employes
-    listEmp = new QSqlRelationalTableModel(this, db);
-    //Recupere la table permanent
-    QString tabProName("permanent");
-    listEmp->setTable(tabProName);
-    listEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
-    listEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
-    listEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
-    listEmp->sort(0, Qt::AscendingOrder);
-    listEmp->select();
+    listEmp = new QSqlQueryModel(this);
+
+    //Recupere la table employe
+    QSqlQuery query;
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp ORDER BY emp.libEmp ASC");
+
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    listEmp->setQuery(std::move(query));
 
     return (listEmp->rowCount() > 0)? listEmp: nullptr;
 }
 
-QSqlRelationalTableModel *Backend::getOneEmp(const QString &theName)
+QSqlQueryModel *Backend::getOneEmp(const QString &theName)
 {
     if (!db.open()) {
         emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
     }
 
     //Recherche d'un employe
-    oneEmp = new QSqlRelationalTableModel(this, db);
-    QString myFilter = "libEmp LIKE '%"+theName+"%'";
+    oneEmp = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE emp.libEmp LIKE '%"+theName+"%'");
 
-    //Recupere la table permanent
-    QString tabProName("permanent");
-    oneEmp->setTable(tabProName);
-    oneEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
-    oneEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
-    oneEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
-    oneEmp->setFilter(myFilter);
-    oneEmp->sort(0, Qt::AscendingOrder);
-    oneEmp->select();
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    oneEmp->setQuery(std::move(query));
 
     return (oneEmp->rowCount() > 0)? oneEmp: nullptr;
 }
 
-QVariantList Backend::getOneEmpForBull(const QString &theName)
+QSqlQueryModel *Backend::getFullHis(int start, int year)
 {
     if (!db.open()) {
         emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
     }
 
-    QSqlQueryModel getAllOfEmp(this);
-    QSqlQuery query = QSqlQuery(db);
+    //Recherche d'un history
+    fullHis = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT his.dateHis, his.salBase, his.salTaxCot, his.prime, his.salBrute, his.impot, his.montCnps, his.totRet, his.nap, emp.libEmp FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp WHERE his.dateHis LIKE '%"+QString::number(year)+"%' ORDER BY his.idHis DESC LIMIT "+QString::number(start)+", 100");
 
-    query.prepare("SELECT sec.*, emp.*, per.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN permanent AS per ON emp.idEmp = per.idEmp JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON per.typEmp = typ.idTypEmp WHERE emp.libEmp = :libEmp");
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    fullHis->setQuery(std::move(query));
+
+    return (fullHis->rowCount() > 0)? fullHis: nullptr;
+}
+
+QSqlQueryModel *Backend::getHisOfEmp(const QString &theName)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    histOfEmp = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT his.dateHis, his.salBase, his.salTaxCot, his.prime, his.salBrute, his.impot, his.montCnps, his.totRet, his.nap FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp WHERE emp.libEmp = :libEmp");
     query.bindValue(":libEmp", theName);
 
     if (!query.exec()) {
-        emit errorOccurred("Echec de la lecture des données:" + db.lastError().text());
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
     }
 
-    getAllOfEmp.setQuery(std::move(query));
+    histOfEmp->setQuery(std::move(query));
+
+    return (histOfEmp->rowCount() > 0)? histOfEmp: nullptr;
+}
+
+QVariantList Backend::getOneEmpForBull(const QString &data)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
+    QJsonObject myObj = doc.object();
+
+    QString theName = myObj["empName"].toString();
+    bool isOverview = myObj["isOverview"].toBool();
+
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    getAllOfEmp = new QSqlQueryModel(this);
+    QSqlQuery query(db);
+
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE emp.libEmp = :libEmp");
+    query.bindValue(":libEmp", theName);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    getAllOfEmp->setQuery(std::move(query));
 
     QVariantList list;
 
-    if (getAllOfEmp.rowCount() <= 0) {
+    if (getAllOfEmp->rowCount() <= 0) {
         emit errorOccurred("Echec de la lecture des données de l'employé(e)!");
         return list;
     }
 
-    for (int row = 0; row < getAllOfEmp.rowCount(); ++row) {
+    for (int row = 0; row < getAllOfEmp->rowCount(); ++row) {
         QVariantMap rowData;
 
-        for (int col = 0; col < getAllOfEmp.columnCount(); ++col) {
-            QString columnName = getAllOfEmp.headerData(col, Qt::Horizontal).toString();
-            QVariant value = getAllOfEmp.data(getAllOfEmp.index(row, col));
+        for (int col = 0; col < getAllOfEmp->columnCount(); ++col) {
+            QString columnName = getAllOfEmp->headerData(col, Qt::Horizontal).toString();
+            QVariant value = getAllOfEmp->data(getAllOfEmp->index(row, col));
             rowData[columnName] = value;
         }
 
         list.append(rowData); // Ajouter chaque ligne sous forme de map dans la liste
     }
 
+    if (!isOverview) {
+        insertInHis(list);
+    }
+
     return list;
 }
 
-QSqlRelationalTableModel *Backend::getGroupOfEmp(const QString &filterData)
+void Backend::insertInHis(QVariantList &list)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+        return;
+    }
+
+    QSqlQuery query(db);
+
+    //Debut de la transaction
+    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
+        return;
+    }
+
+    //Insertion dans historique
+    int lastHis = 0;
+
+    QVariantMap rowData = list[0].toMap();
+
+    int salBru = rowData["salBase"].toInt() + rowData["montPri"].toInt();
+    int impot = rowData["irpp"].toInt() + rowData["tc"].toInt() + rowData["cf"].toInt() + rowData["cac"].toInt() + rowData["rav"].toInt();
+    int cnps = rowData["salCot"].toInt() * 0.042;
+    int totRet = impot + cnps;
+    int nap = salBru - totRet;
+
+    query.prepare(
+        "insert into history (idEmp, dateHis, salBase, salTaxCot, prime, salBrute, impot, montCnps, totRet, nap) values "
+        "(:idEmp, :dateHis, :salBase, :salTaxCot, :prime, :salBrute, :impot, :montCnps, :totRet, :nap)"
+        );
+    query.bindValue(":idEmp", rowData["idEmp"].toInt());
+    query.bindValue(":dateHis", QDateTime::currentDateTime());
+    query.bindValue(":salBase", rowData["salBase"].toInt());
+    query.bindValue(":salTaxCot", rowData["salCot"].toInt());
+    query.bindValue(":prime", rowData["montPri"].toInt());
+    query.bindValue(":salBrute", salBru);
+    query.bindValue(":impot", impot);
+    query.bindValue(":montCnps", cnps);
+    query.bindValue(":totRet", totRet);
+    query.bindValue(":nap", nap);
+
+    if (!executeQuery(query)) {
+        query.exec("ROLLBACK");
+        return;
+    }
+    lastHis = query.lastInsertId().toInt();
+
+    //Fin de la transaction
+    query.prepare("COMMIT");
+    if (!executeQuery(query)) {
+        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
+        return;
+    }
+
+    rowData["lastHisId"] = QVariant(lastHis);
+    list[0] = rowData;
+}
+
+QSqlQueryModel *Backend::getGroupOfEmp(const QString &filterData, bool isHis)
 {
     QJsonDocument doc = QJsonDocument::fromJson(filterData.toUtf8());
     QJsonObject myObj = doc.object();
 
     QString libSec = myObj["sect"].toString();
     int sexIndex = myObj["sex"].toInt();
-    QString dateArr = myObj["year"].toString();
+    QString anArriv = myObj["anArriv"].toString();
 
-    // Par la date
-    QString theFilter = "dateEmp LIKE '%"+dateArr+"%'";
+    // la requete avant les filtres
+    QString theQuery("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE ");
 
-    // Par le sexe
-    if (sexIndex >= 0) {
-        theFilter.append(" OR sexEmp="+QString::number(sexIndex));
+    if (isHis) {
+        // Par secteur
+        theQuery.append("sec.idSec="+QString::number(getSecIdByName(libSec)));
     }
+    else {
+        // Par la date
+        theQuery.append("emp.anArriv LIKE '%"+anArriv+"%'");
 
-    // Par secteur
-    if (libSec.length() > 0) {
-        theFilter.append(" OR idSec="+QString::number(getSecIdByName(libSec)));
+        // Par le sexe
+        if (sexIndex >= 0) {
+            theQuery.append(" OR emp.sexEmp="+QString::number(sexIndex));
+        }
+
+        // Par secteur
+        if (libSec.length() > 0) {
+            theQuery.append(" OR sec.idSec="+QString::number(getSecIdByName(libSec)));
+        }
     }
 
     if (!db.open()) {
@@ -257,17 +378,22 @@ QSqlRelationalTableModel *Backend::getGroupOfEmp(const QString &filterData)
     }
 
     //Recherche du groupe
-    groupOfEmp = new QSqlRelationalTableModel(this, db);
+    groupOfEmp = new QSqlQueryModel(this);
 
-    //Recupere la table permanent
-    QString tabProName("permanent");
-    groupOfEmp->setTable(tabProName);
-    groupOfEmp->setEditStrategy(QSqlRelationalTableModel::OnManualSubmit);
-    groupOfEmp->setRelation(0, QSqlRelation("employe", "idEmp", "libEmp"));
-    groupOfEmp->setRelation(3, QSqlRelation("typeEmp", "idTypEmp", "libTypEmp"));
-    groupOfEmp->setFilter(theFilter);
-    groupOfEmp->sort(0, Qt::AscendingOrder);
-    groupOfEmp->select();
+    //Recupere la table employe
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    QSqlQuery query(db);
+
+    query.prepare(theQuery);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    groupOfEmp->setQuery(std::move(query));
 
     return (groupOfEmp->rowCount() > 0)? groupOfEmp: nullptr;
 }
@@ -315,17 +441,33 @@ bool Backend::submitNewEmp(const QString &empData)
 
     //Insertion dans employe
     query.prepare(
-        "insert into `employe` (idSec, libEmp, sexEmp, numCni, contact, dateEmp) values (:idSec, :libEmp, :sexEmp, :numCni, :contact, :dateEmp)"
+        "insert into `employe` "
+        "(idSec, libEmp, sexEmp, numCni, contact, dateEmp, numCnps, niu, idTypEmp, cate, salBase, salCot, salTax, irpp, tc, cf, cac, rav, anArriv) values "
+        "(:idSec, :libEmp, :sexEmp, :numCni, :contact, :dateEmp, :numCnps, :niu, :idTypEmp, :cate, :salBase, :salCot, :salTax, :irpp, :tc, :cf, :cac, :rav, :anArriv)"
     );
     query.bindValue(":idSec", idSec);
     query.bindValue(":libEmp", myObj["empName"].toString());
     query.bindValue(":sexEmp", myObj["sex"].toInt());
     query.bindValue(":numCni", myObj["numCni"].toString());
     query.bindValue(":contact", myObj["contact"].toString());
-    query.bindValue(":dateEmp", myObj["year"].toString());
+    query.bindValue(":dateEmp", QDateTime::currentDateTime());
+    query.bindValue(":numCnps", myObj["numCnps"].toString());
+    query.bindValue(":niu", myObj["niu"].toString());
+    query.bindValue(":idTypEmp", idTypEmp);
+    query.bindValue(":cate", myObj["cat"].toString());
+    query.bindValue(":salBase", myObj["salBase"].toInt());
+    query.bindValue(":salCot", myObj["salCot"].toInt());
+    query.bindValue(":salTax", myObj["salTax"].toInt());
+    query.bindValue(":irpp", myObj["irpp"].toInt());
+    query.bindValue(":tc", myObj["tc"].toInt());
+    query.bindValue(":cf", myObj["cf"].toInt());
+    query.bindValue(":cac", myObj["cac"].toInt());
+    query.bindValue(":rav", myObj["rav"].toInt());
+    query.bindValue(":anArriv", myObj["anArriv"].toString());
 
     if (!executeQuery(query)) {
         query.exec("ROLLBACK");
+        emit errorOccurred("Echec de l'insertion en base de données:" + query.lastError().text());
 
         return false;
     }
@@ -341,32 +483,7 @@ bool Backend::submitNewEmp(const QString &empData)
 
     if (!executeQuery(query)) {
         query.exec("ROLLBACK");
-
-        return false;
-    }
-
-    //Insertion dans permanent
-    query.prepare(
-        "insert into `permanent` (idEmp, numCnps, niu, typEmp, cate, salBase, salCot, salTax, salBrute, irpp, tc, cf, cac, rav) values "
-        "(:lastEmpId, :numCnps, :niu, :typEmp, :cate, :salBase, :salCot, :salTax, :salBrute, :irpp, :tc, :cf, :cac, :rav)"
-    );
-    query.bindValue(":lastEmpId", lastEmpId);
-    query.bindValue(":numCnps", myObj["numCnps"].toString());
-    query.bindValue(":niu", myObj["niu"].toString());
-    query.bindValue(":typEmp", idTypEmp);
-    query.bindValue(":cate", myObj["cat"].toString());
-    query.bindValue(":salBase", myObj["salBase"].toInt());
-    query.bindValue(":salCot", myObj["salCot"].toInt());
-    query.bindValue(":salTax", myObj["salTax"].toInt());
-    query.bindValue(":salBrute", myObj["salBrute"].toInt());
-    query.bindValue(":irpp", myObj["irpp"].toInt());
-    query.bindValue(":tc", myObj["tc"].toInt());
-    query.bindValue(":cf", myObj["cf"].toInt());
-    query.bindValue(":cac", myObj["cac"].toInt());
-    query.bindValue(":rav", myObj["rav"].toInt());
-
-    if (!executeQuery(query)) {
-        query.exec("ROLLBACK");
+        emit errorOccurred("Echec de l'insertion en base de données:" + query.lastError().text());
 
         return false;
     }
@@ -554,13 +671,12 @@ bool Backend::updateEmpTypEmp(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set typEmp=:newTyp where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set idTypEmp=:newTyp where idEmp=:curId");
     query.bindValue(":newTyp", idOfTypEmp);
     query.bindValue(":curId", idOfEmp);
 
     if (!executeQuery(query)) {
-        qDebug() << "BP: "<< query.lastError().text();
         query.exec("ROLLBACK");
 
         return false;
@@ -604,8 +720,8 @@ bool Backend::updateEmpSalBase(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set salBase=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set salBase=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -653,7 +769,7 @@ bool Backend::updateEmpPrime(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
+    //Insertion dans prime
     query.prepare("update prime set montPri=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
@@ -702,8 +818,8 @@ bool Backend::updateEmpSalCot(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set salCot=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set salCot=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -751,57 +867,8 @@ bool Backend::updateEmpSalTax(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set salTax=:newMont where idEmp=:curId");
-    query.bindValue(":newMont", newMont);
-    query.bindValue(":curId", idOfEmp);
-
-    if (!executeQuery(query)) {
-        query.exec("ROLLBACK");
-
-        return false;
-    }
-
-    //Fin de la transaction
-    query.prepare("COMMIT");
-    if (!executeQuery(query)) {
-        emit errorOccurred("Echec de sauvegarde de la transaction:" + query.lastError().text());
-
-        return false;
-    }
-    emit successOperation("Effectué avec succès!");
-
-    return true;
-}
-
-bool Backend::updateEmpSalBrute(const QString &data)
-{
-    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8());
-    QJsonObject myObj = doc.object();
-
-    QString curLibEmp = myObj["currentName"].toString();
-    int newMont = myObj["newSalBrute"].toInt();
-    int idOfEmp = getEmpIdByName(curLibEmp);
-
-    // Ouverture de la bd
-    if (!db.open()) {
-        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
-
-        return false;
-    }
-
-    QSqlQuery query;
-
-    //Debut de la transaction
-    query.prepare("BEGIN TRANSACTION"); // Et non 'START TRANSACTION' comme dans MySQL
-    if (!executeQuery(query)) {
-        emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
-
-        return false;
-    }
-
-    //Insertion dans permanent
-    query.prepare("update permanent set salBrute=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set salTax=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -849,8 +916,8 @@ bool Backend::updateEmpIrpp(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set irpp=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set irpp=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -898,8 +965,8 @@ bool Backend::updateEmpTc(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set tc=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set tc=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -947,8 +1014,8 @@ bool Backend::updateEmpCf(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set cf=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set cf=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -996,8 +1063,8 @@ bool Backend::updateEmpCac(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set cac=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set cac=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
@@ -1045,8 +1112,8 @@ bool Backend::updateEmpRav(const QString &data)
         return false;
     }
 
-    //Insertion dans permanent
-    query.prepare("update permanent set rav=:newMont where idEmp=:curId");
+    //Insertion dans employe
+    query.prepare("update employe set rav=:newMont where idEmp=:curId");
     query.bindValue(":newMont", newMont);
     query.bindValue(":curId", idOfEmp);
 
