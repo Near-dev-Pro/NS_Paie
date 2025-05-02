@@ -270,6 +270,14 @@ Page {
                                     wrapMode: TextField.WordWrap
                                     width: (partialHistTV.width / 8)
                                     elide: Text.ElideRight
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        ToolTip {
+                                            text: model.display
+                                            visible: parent.containsMouse
+                                        }
+                                    }
                                 }
                             }
                         }

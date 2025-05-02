@@ -535,7 +535,8 @@ Page {
                             popup: Popup {
                                 y: typEmp.height - 1
                                 width: typEmp.width
-                                implicitHeight: contentItem.implicitHeight
+                                // Fixe la hauteur à 10 éléments maximum et active le scrolling
+                                implicitHeight: Math.min(typEmp.count, 5) * 50
                                 padding: 1
 
                                 contentItem: ListView {
@@ -892,6 +893,44 @@ Page {
                         }
                     }
 
+                    // Ligne du nouveau type d'emploi
+                    RowLayout {
+                        id: newTypEmpRow
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 10 // Espacement entre le texte et le champ de saisie
+
+                        // Texte indicatif
+                        Label {
+                            text: qsTr("Type d'emploi (Opt):")
+                            Layout.preferredWidth: (subColLayId01.width * 0.4)
+                            font.pixelSize: 16
+                            color: Material.foreground
+                        }
+
+                        TextField {
+                            id: newTypEmp
+                            placeholderText: qsTr("Entrez le nouveau type")
+                            implicitHeight: 40
+                            font.pixelSize: 20
+                            Layout.alignment: Qt.AlignHCenter
+                            placeholderTextColor: Style.placeholder
+                            Layout.preferredWidth: (subColLayId01.width * 0.6)
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            background: Rectangle {
+                                color: Material.background
+                                radius: 10
+                                border.color: Material.accent
+                                border.width: 1
+                            }
+
+                            // Forcer l'affichage en majuscule
+                            onTextChanged: {
+                                newTypEmp.text = newTypEmp.text.toUpperCase();
+                            }
+                        }
+                    }
+
                     Item {
                         Layout.fillHeight: true
                     }
@@ -1038,11 +1077,24 @@ Page {
 
         let checkTypEmp = new Promise((resolve, reject) => {
             if (typEmp.currentIndex < 0) {
-                reject("Veuillez selectionner un type d'emploi valide!")
+                if (newTypEmp.length < 1) {
+                    reject("Veuillez selectionner un type d'emploi valide OU fournir un nouveau type (en bas dernière ligne colonne droite)!")
+                }
+                else {
+                    myObj["newTypEmp"] = newTypEmp.text
+                    resolve("ok")
+                }
             }
             else {
-                myObj["typEmp"] = typEmp.currentText
-                resolve("ok")
+                if (newTypEmp.length < 1) {
+                    myObj["typEmp"] = typEmp.currentText
+                    myObj["newTypEmp"] = ""
+                    resolve("ok")
+                }
+                else {
+                    myObj["newTypEmp"] = newTypEmp.text
+                    resolve("ok")
+                }
             }
         });
 
@@ -1094,6 +1146,7 @@ Page {
                 salBase.value = salBase.from
                 salCot.value = salCot.from
                 salTax.value = salTax.from
+                newTypEmp.text = ""
                 prime.value = irpp.value = tc.value = cf.value = cac.value = rav.value = 0
             }
         })

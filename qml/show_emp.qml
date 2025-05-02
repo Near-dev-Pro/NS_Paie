@@ -115,7 +115,8 @@ Page {
                             popup: Popup {
                                 y: emp.height - 1
                                 width: emp.width
-                                implicitHeight: contentItem.implicitHeight
+                                // Fixe la hauteur à 10 éléments maximum et active le scrolling
+                                implicitHeight: Math.min(emp.count, 5) * 50
                                 padding: 1
 
                                 contentItem: ListView {

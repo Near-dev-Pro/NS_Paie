@@ -410,9 +410,15 @@ bool Backend::submitNewEmp(const QString &empData)
 
     QString libSec = myObj["sect"].toString();
     QString libTypEmp = myObj["typEmp"].toString();
+    QString libNewTypEmp = myObj["newTypEmp"].toString();
     int idSec = getSecIdByName(libSec);
-    int idTypEmp = getTypEmpIdByName(libTypEmp);
+    int idTypEmp = 0;
     int lastEmpId = 0;
+
+    // S'il n'y a pas un nouveau type d'emploi
+    if (libNewTypEmp.isEmpty()) {
+        idTypEmp = getTypEmpIdByName(libTypEmp);
+    }
 
     //Verification du secteur
     if (idSec == 0) {
@@ -437,6 +443,25 @@ bool Backend::submitNewEmp(const QString &empData)
         emit errorOccurred("Echec de l'ouverture de la transaction:" + query.lastError().text());
 
         return false;
+    }
+
+    // S'il y a un nouveau type d'emploi
+    if (!libNewTypEmp.isEmpty()) {
+        //Insertion dans typeEmp
+        query.prepare(
+            "insert into `typeEmp` "
+            "(libTypEmp) values "
+            "(:libTypEmp)"
+            );
+        query.bindValue(":libTypEmp", libNewTypEmp);
+
+        if (!executeQuery(query)) {
+            query.exec("ROLLBACK");
+            emit errorOccurred("Echec de l'insertion en base de données du nouveau type d'emploi:" + query.lastError().text());
+
+            return false;
+        }
+        idTypEmp = query.lastInsertId().toInt();
     }
 
     //Insertion dans employe
