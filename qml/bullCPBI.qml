@@ -24,7 +24,7 @@ Window {
         context: Qt.ApplicationShortcut
         onActivated: {
             let stat = printableContainer.grabToImage(function (result) {
-                MyApi.startPreviewDoc(result.image);
+                MyApi.startPreviewDoc(result.image, "Bulletin-CPBI");
             });
         }
     }

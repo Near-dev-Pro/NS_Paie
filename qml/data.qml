@@ -5,7 +5,7 @@ import QtQuick.Effects
 
 Page {
     id: currentItemId
-    property string currentPage: "qrc:/qml/global_hist.qml"
+    property string currentPage: "qrc:/qml/print.qml"
 
     // Barre d'Outils
     header: ToolBar {
@@ -15,50 +15,6 @@ Page {
         RowLayout {
             anchors.fill: parent
             spacing: 10
-
-            ToolButton {
-                id: toolHistGlo
-                property string targetIcon: "qrc:/assets/images/x32/global.svg"
-                property string targetPage: "qrc:/qml/global_hist.qml"
-
-                background: Rectangle {
-                    anchors.fill: parent
-                    anchors.leftMargin: 2
-                    height: 40
-                    radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.background : "transparent"
-                }
-
-                onClicked: {
-                    currentItemId.currentPage = toolHistGlo.targetPage
-                    childStackView.pop(null)
-                }
-
-                contentItem: RowLayout {
-                    spacing: 5
-                    Layout.alignment: Qt.AlignHCenter
-
-                    Image {
-                        source: toolHistGlo.targetIcon
-                        Layout.preferredWidth: 24
-                        Layout.preferredHeight: 24
-                        layer.enabled: true
-                        layer.effect: MultiEffect {
-                            brightness: 0.0
-                            colorization: 1.0
-                            colorizationColor: Material.primary
-                        }
-                    }
-                    Label {
-                        text: qsTr("Historique global annuel")
-                        color: Style.text
-                        font.bold: true
-                        font.pixelSize: 18
-                    }
-                }
-            }
-
-            ToolSeparator{}
 
             ToolButton {
                 id: toolPrint
@@ -71,12 +27,12 @@ Page {
                     anchors.leftMargin: 2
                     height: 40
                     radius: Material.ExtraLargeScale
-                    color: childStackView.currentItem === toolPrint.currentItemStkView ? Style.background : "transparent"
+                    color: childStackView.currentItem === childStackView.get(0, StackView.DontLoad) ? Style.background : "transparent"
                 }
 
                 onClicked: {
                     currentItemId.currentPage = toolPrint.targetPage
-                    toolPrint.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                    childStackView.pop(null)
                 }
 
                 contentItem: RowLayout {
@@ -96,6 +52,96 @@ Page {
                     }
                     Label {
                         text: qsTr("Utils")
+                        color: Style.text
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
+
+            ToolSeparator{}
+
+            ToolButton {
+                id: toolRecapPrint
+                property string targetIcon: "qrc:/assets/images/x32/other_prints.svg"
+                property string targetPage: "qrc:/qml/other_prints.qml"
+                property Item currentItemStkView
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === toolRecapPrint.currentItemStkView ? Style.background : "transparent"
+                }
+
+                onClicked: {
+                    currentItemId.currentPage = toolRecapPrint.targetPage
+                    toolRecapPrint.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                }
+
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Image {
+                        source: toolRecapPrint.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
+                    }
+                    Label {
+                        text: qsTr("Autres impressions")
+                        color: Style.text
+                        font.bold: true
+                        font.pixelSize: 18
+                    }
+                }
+            }
+
+            ToolSeparator{}
+
+            ToolButton {
+                id: toolHistGlo
+                property string targetIcon: "qrc:/assets/images/x32/global.svg"
+                property string targetPage: "qrc:/qml/global_hist.qml"
+                property Item currentItemStkView
+
+                background: Rectangle {
+                    anchors.fill: parent
+                    anchors.leftMargin: 2
+                    height: 40
+                    radius: Material.ExtraLargeScale
+                    color: childStackView.currentItem === toolHistGlo.currentItemStkView ? Style.background : "transparent"
+                }
+
+                onClicked: {
+                    currentItemId.currentPage = toolHistGlo.targetPage
+                    toolHistGlo.currentItemStkView = childStackView.push(currentItemId.currentPage)
+                }
+
+                contentItem: RowLayout {
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter
+
+                    Image {
+                        source: toolHistGlo.targetIcon
+                        Layout.preferredWidth: 24
+                        Layout.preferredHeight: 24
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            brightness: 0.0
+                            colorization: 1.0
+                            colorizationColor: Material.primary
+                        }
+                    }
+                    Label {
+                        text: qsTr("Historique global annuel")
                         color: Style.text
                         font.bold: true
                         font.pixelSize: 18

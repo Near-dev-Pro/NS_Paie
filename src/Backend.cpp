@@ -27,7 +27,13 @@ Backend::~Backend()
     delete groupOfEmp;
     delete getAllOfEmp;
     delete histOfEmp;
+    delete histOfEmpRecapAn;
     delete fullHis;
+    delete getAllOfEmpForRecap;
+    delete fullHisDep;
+    delete fullHisDepMens;
+    delete fullHisDepTot;
+    delete fullHisDepMens;
 
     //Fermeture de la connexion a la bd
     db.close();
@@ -40,8 +46,10 @@ void Backend::initialize()
     }
 }
 
-bool Backend::startPreviewDoc(QVariant data)
+bool Backend::startPreviewDoc(QVariant data, const QString &withWatermarkText)
 {
+    currentFiligran = withWatermarkText;
+
     currentTargetPrint = data; // On fixe globalement le contenu
     QPrinter printer(QPrinter::HighResolution);
     QPrintPreviewDialog preview(&printer, 0);
@@ -55,34 +63,61 @@ bool Backend::startPreviewDoc(QVariant data)
 
 bool Backend::startPrintDoc(QPrinter *thePrinter)
 {
-    QImage contentImage = qvariant_cast<QImage>(
-        currentTargetPrint); // On recupere le contenu du screenshot de l'ecran
+    QImage contentImage = qvariant_cast<QImage>(currentTargetPrint);
     if (contentImage.isNull()) {
         emit errorOccurred("Impossible d'imprimer le contenu!");
         return false;
     }
 
     if (!thePrinter) {
-        emit errorOccurred("Impriment invalide!");
+        emit errorOccurred("Imprimante invalide!");
         return false;
     }
 
     QPainter painter(thePrinter);
-    // Obtenir la taille de la page en millimètres
-    QRectF printerRectMM = thePrinter->pageLayout().paintRect(QPageLayout::Millimeter);
-    QSizeF printerSizeMM = printerRectMM.size();
-    // Convertir la taille en millimètres en pixels
-    int dpiX = thePrinter->logicalDpiX();
-    int dpiY = thePrinter->logicalDpiY();
-    int widthPixels = static_cast<int>(printerSizeMM.width() * dpiX / 25.4); // 1 pouce = 25.4 mm
-    int heightPixels = static_cast<int>(printerSizeMM.height() * dpiY / 25.4);
-    // Redimensionner l'image pour qu'elle s'adapte à la page
-    QImage scaledImage = contentImage.scaled(widthPixels,
-                                             heightPixels,
-                                             Qt::KeepAspectRatio,
-                                             Qt::SmoothTransformation);
-    // Dessiner l'image redimensionnée
-    painter.drawImage(QRect(0, 0, widthPixels, heightPixels), scaledImage);
+    if (!painter.isActive()) {
+        emit errorOccurred("Le QPainter est inactif !");
+        return false;
+    }
+
+    QRect paintRect = thePrinter->pageLayout().paintRectPixels(thePrinter->resolution());
+    int pageWidth = paintRect.width();
+    int pageHeight = paintRect.height();
+
+    // ➕ On redimensionne l'image pour que sa largeur corresponde à celle de la page
+    // et on garde son ratio. On imprimera en découpant verticalement.
+    QImage scaledImage = contentImage.scaledToWidth(pageWidth, Qt::SmoothTransformation);
+
+    int totalHeight = scaledImage.height();
+    int y = 0;
+
+    while (y < totalHeight) {
+        QRect sourceRect(0, y, pageWidth, pageHeight);
+        QRect targetRect(0, 0, pageWidth, pageHeight);
+        painter.drawImage(targetRect, scaledImage, sourceRect);
+
+        // ➕ Filigrane par page (optionnel)
+        if (!currentFiligran.trimmed().isEmpty()) {
+            painter.save();
+            QFont watermarkFont("Arial", 60, QFont::Bold);
+            watermarkFont.setItalic(true);
+            painter.setFont(watermarkFont);
+            painter.setPen(QColor(0, 0, 0, 30)); // noir avec alpha 30/255 = ~12% opacity
+            painter.setOpacity(1.0); // remets opacité à 100% car alpha gère la transparence
+            painter.translate(paintRect.center());
+            painter.rotate(-45);
+            painter.drawText(QRect(-paintRect.width() / 2, -paintRect.height() / 2,
+                                   paintRect.width(), paintRect.height()),
+                             Qt::AlignCenter, currentFiligran);
+            // painter.drawText(paintRect, Qt::AlignCenter, currentFiligran);
+            painter.restore();
+        }
+
+        y += pageHeight;
+        if (y < totalHeight)
+            thePrinter->newPage();
+    }
+
     painter.end();
     return true;
 }
@@ -161,7 +196,7 @@ QSqlQueryModel *Backend::getListEmp()
 
     //Recupere la table employe
     QSqlQuery query;
-    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp ORDER BY emp.libEmp ASC");
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp GROUP BY emp.libEmp ORDER BY emp.libEmp ASC");
 
     if (!executeQuery(query)) {
         emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
@@ -181,7 +216,7 @@ QSqlQueryModel *Backend::getOneEmp(const QString &theName)
     //Recherche d'un employe
     oneEmp = new QSqlQueryModel(this);
     QSqlQuery query;
-    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE emp.libEmp LIKE '%"+theName+"%'");
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE emp.libEmp LIKE '%"+theName+"%' GROUP BY emp.libEmp");
 
     if (!query.exec()) {
         emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
@@ -212,6 +247,90 @@ QSqlQueryModel *Backend::getFullHis(int start, int year)
     return (fullHis->rowCount() > 0)? fullHis: nullptr;
 }
 
+QSqlQueryModel *Backend::getHisOfDepRecapAn(int sec, int year, int start)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    fullHisDep = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT emp.libEmp, SUM(his.salBase) as base, SUM(his.salTaxCot) as taxable, SUM(his.prime) as prime, SUM(his.salBrute) as brute, SUM(his.impot) as impot, SUM(his.montCnps) as cnps, SUM(his.totRet) as retenues, SUM(his.nap) as nap FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp  WHERE (his.dateHis LIKE '%"+QString::number(year)+"%' AND emp.idSec = :sec) GROUP BY emp.libEmp ORDER BY his.idHis DESC LIMIT "+QString::number(start)+", 100");
+    query.bindValue(":sec", sec);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    fullHisDep->setQuery(std::move(query));
+
+    return (fullHisDep->rowCount() > 0)? fullHisDep: nullptr;
+}
+
+QSqlQueryModel *Backend::getHisOfDepRecapAnTot(int sec, int year, int start)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    fullHisDepTot = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(DISTINCT emp.libEmp), SUM(his.salBase) as base, SUM(his.salTaxCot) as taxable, SUM(his.prime) as prime, SUM(his.salBrute) as brute, SUM(his.impot) as impot, SUM(his.montCnps) as cnps, SUM(his.totRet) as retenues, SUM(his.nap) as nap FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp  WHERE (his.dateHis LIKE '%"+QString::number(year)+"%' AND emp.idSec = :sec) ORDER BY his.idHis DESC LIMIT "+QString::number(start)+", 100");
+    query.bindValue(":sec", sec);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    fullHisDepTot->setQuery(std::move(query));
+
+    return (fullHisDepTot->rowCount() > 0)? fullHisDepTot: nullptr;
+}
+
+QSqlQueryModel *Backend::getHisOfDepRecapMens(int sec, QString yearMonth, int start)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    fullHisDepMens = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT emp.libEmp, SUM(his.salBase) as base, SUM(his.salTaxCot) as taxable, SUM(his.prime) as prime, SUM(his.salBrute) as brute, SUM(his.impot) as impot, SUM(his.montCnps) as cnps, SUM(his.totRet) as retenues, SUM(his.nap) as nap FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp  WHERE (his.dateHis LIKE '%"+yearMonth+"%' AND emp.idSec = :sec) GROUP BY emp.libEmp ORDER BY his.idHis DESC LIMIT "+QString::number(start)+", 100");
+    query.bindValue(":sec", sec);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    fullHisDepMens->setQuery(std::move(query));
+
+    return (fullHisDepMens->rowCount() > 0)? fullHisDepMens: nullptr;
+}
+
+QSqlQueryModel *Backend::getHisOfDepRecapMensTot(int sec, QString yearMonth, int start)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    fullHisDepMensTot = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(DISTINCT emp.libEmp) as totemp, SUM(his.salBase) as base, SUM(his.salTaxCot) as taxable, SUM(his.prime) as prime, SUM(his.salBrute) as brute, SUM(his.impot) as impot, SUM(his.montCnps) as cnps, SUM(his.totRet) as retenues, SUM(his.nap) as nap FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp  WHERE (his.dateHis LIKE '%"+yearMonth+"%' AND emp.idSec = :sec) ORDER BY his.idHis DESC LIMIT "+QString::number(start)+", 100");
+    query.bindValue(":sec", sec);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    fullHisDepMensTot->setQuery(std::move(query));
+
+    return (fullHisDepMensTot->rowCount() > 0)? fullHisDepMensTot: nullptr;
+}
+
 QSqlQueryModel *Backend::getHisOfEmp(const QString &theName)
 {
     if (!db.open()) {
@@ -231,6 +350,46 @@ QSqlQueryModel *Backend::getHisOfEmp(const QString &theName)
     histOfEmp->setQuery(std::move(query));
 
     return (histOfEmp->rowCount() > 0)? histOfEmp: nullptr;
+}
+
+QVariantList Backend::getHisOfEmpRecapAn(const QString &theName, int year)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    //Recherche d'un history
+    histOfEmpRecapAn = new QSqlQueryModel(this);
+    QSqlQuery query;
+    query.prepare("SELECT SUM(his.salBase) as totBase, SUM(his.prime) as totPri, SUM(his.impot) as totImp, SUM(his.montCnps) as totCnps FROM history AS his JOIN employe AS emp ON his.idEmp = emp.idEmp WHERE (emp.libEmp = :libEmp AND his.dateHis LIKE '%"+QString::number(year)+"%')");
+    query.bindValue(":libEmp", theName);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    histOfEmpRecapAn->setQuery(std::move(query));
+
+    QVariantList list;
+
+    if (histOfEmpRecapAn->rowCount() <= 0) {
+        emit errorOccurred("Echec de la lecture des données!");
+        return list;
+    }
+
+    for (int row = 0; row < histOfEmpRecapAn->rowCount(); ++row) {
+        QVariantMap rowData;
+
+        for (int col = 0; col < histOfEmpRecapAn->columnCount(); ++col) {
+            QString columnName = histOfEmpRecapAn->headerData(col, Qt::Horizontal).toString();
+            QVariant value = histOfEmpRecapAn->data(histOfEmpRecapAn->index(row, col));
+            rowData[columnName] = value;
+        }
+
+        list.append(rowData); // Ajouter chaque ligne sous forme de map dans la liste
+    }
+
+    return list;
 }
 
 QVariantList Backend::getOneEmpForBull(const QString &data)
@@ -278,6 +437,46 @@ QVariantList Backend::getOneEmpForBull(const QString &data)
 
     if (!isOverview) {
         insertInHis(list);
+    }
+
+    return list;
+}
+
+QVariantList Backend::getOneEmpForRecap(const QString &theName)
+{
+    if (!db.open()) {
+        emit errorOccurred("Echec de l'ouverture de la base de données:" + db.lastError().text());
+    }
+
+    getAllOfEmpForRecap = new QSqlQueryModel(this);
+    QSqlQuery query(db);
+
+    query.prepare("SELECT emp.*, sec.*, pri.*, typ.* FROM employe AS emp JOIN secteur AS sec ON emp.idSec = sec.idSec JOIN prime AS pri ON emp.idEmp = pri.idEmp JOIN typeEmp AS typ ON emp.idTypEmp = typ.idTypEmp WHERE emp.libEmp = :libEmp");
+    query.bindValue(":libEmp", theName);
+
+    if (!query.exec()) {
+        emit errorOccurred("Echec de la lecture des données:" + query.lastError().text());
+    }
+
+    getAllOfEmpForRecap->setQuery(std::move(query));
+
+    QVariantList list;
+
+    if (getAllOfEmpForRecap->rowCount() <= 0) {
+        emit errorOccurred("Echec de la lecture des données de l'employé(e)!");
+        return list;
+    }
+
+    for (int row = 0; row < getAllOfEmpForRecap->rowCount(); ++row) {
+        QVariantMap rowData;
+
+        for (int col = 0; col < getAllOfEmpForRecap->columnCount(); ++col) {
+            QString columnName = getAllOfEmpForRecap->headerData(col, Qt::Horizontal).toString();
+            QVariant value = getAllOfEmpForRecap->data(getAllOfEmpForRecap->index(row, col));
+            rowData[columnName] = value;
+        }
+
+        list.append(rowData); // Ajouter chaque ligne sous forme de map dans la liste
     }
 
     return list;
@@ -387,6 +586,8 @@ QSqlQueryModel *Backend::getGroupOfEmp(const QString &filterData, bool isHis)
 
     QSqlQuery query(db);
 
+    // Eviter les doublons
+    theQuery.append(" GROUP BY emp.libEmp");
     query.prepare(theQuery);
 
     if (!query.exec()) {

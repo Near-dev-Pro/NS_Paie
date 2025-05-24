@@ -29,7 +29,7 @@ class Backend : public QObject
 public:
     // methodes
     static Backend *instance();
-    Q_INVOKABLE bool startPreviewDoc(QVariant);
+    Q_INVOKABLE bool startPreviewDoc(QVariant, const QString &watermarkText = QString());
     Q_INVOKABLE bool startPrintDoc(QPrinter *);
     Q_INVOKABLE QSqlQueryModel *getListSectNoms();
     Q_INVOKABLE QSqlQueryModel *getListTypEmpNoms();
@@ -37,9 +37,15 @@ public:
     Q_INVOKABLE QSqlQueryModel *getListEmp();
     Q_INVOKABLE QSqlQueryModel *getOneEmp(const QString &);
     Q_INVOKABLE QSqlQueryModel *getFullHis(int start = 0, int year = QDate().year());
+    Q_INVOKABLE QSqlQueryModel *getHisOfDepRecapAn(int sec = 1, int year = QDate().year(), int start = 0);
+    Q_INVOKABLE QSqlQueryModel *getHisOfDepRecapAnTot(int sec = 1, int year = QDate().year(), int start = 0);
+    Q_INVOKABLE QSqlQueryModel *getHisOfDepRecapMens(int sec = 1, QString yearMonth = QString(), int start = 0);
+    Q_INVOKABLE QSqlQueryModel *getHisOfDepRecapMensTot(int sec = 1, QString yearMonth = QString(), int start = 0);
     Q_INVOKABLE QSqlQueryModel *getHisOfEmp(const QString &);
+    Q_INVOKABLE QVariantList getHisOfEmpRecapAn(const QString &, int year = QDate().year());
     Q_INVOKABLE QSqlQueryModel *getGroupOfEmp(const QString &, bool isHis = false);
     Q_INVOKABLE QVariantList getOneEmpForBull(const QString &);
+    Q_INVOKABLE QVariantList getOneEmpForRecap(const QString &);
     Q_INVOKABLE void insertInHis(QVariantList &);
     Q_INVOKABLE void sendWarning(QString);
     Q_INVOKABLE bool submitNewEmp(const QString &);
@@ -74,11 +80,12 @@ private:
     int getSecIdByName(const QString &);
     int getTypEmpIdByName(const QString &);
     bool executeQuery(QSqlQuery &);
+    QString currentFiligran;
 
     // proprietes
     QSqlDatabase db;
     QVariant currentTargetPrint;
-    QSqlQueryModel *listSectNom, *listTypEmpNom, *listEmp, *oneEmp, *groupOfEmp, *getAllOfEmp, *histOfEmp, *fullHis;
+    QSqlQueryModel *listSectNom, *listTypEmpNom, *listEmp, *oneEmp, *groupOfEmp, *getAllOfEmp, *histOfEmp, *fullHis, *histOfEmpRecapAn, *getAllOfEmpForRecap, *fullHisDep, *fullHisDepMens, *fullHisDepTot, *fullHisDepMensTot;
 };
 
 #endif // BACKEND_H

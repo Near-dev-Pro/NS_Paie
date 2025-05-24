@@ -49,6 +49,20 @@
         <file>assets/images/x32/print.svg</file>
         <file>qml/print.qml</file>
         <file>assets/images/x32/utils.svg</file>
+        <file>assets/images/x32/other_prints.svg</file>
+        <file>qml/other_prints.qml</file>
+        <file>assets/images/x32/render.svg</file>
+        <file>qml/recapAnCBD.qml</file>
+        <file>qml/recapAnEmp.qml</file>
+        <file>qml/recapAnCPBI.qml</file>
+        <file>qml/recapAnCSD.qml</file>
+        <file>qml/recapAnGSBD.qml</file>
+        <file>qml/recapAnRLD.qml</file>
+        <file>qml/recapMoisCBD.qml</file>
+        <file>qml/recapMoisCPBI.qml</file>
+        <file>qml/recapMoisCSD.qml</file>
+        <file>qml/recapMoisGSBD.qml</file>
+        <file>qml/recapMoisRLD.qml</file>
     </qresource>
     <qresource prefix="/translations"/>
 </RCC>
