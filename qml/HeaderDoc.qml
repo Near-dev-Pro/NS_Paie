@@ -207,7 +207,7 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
         }
         Label {
-            text: "B.P : 366 Ngaoundéré Tél : 675 46 06 28/698 07 08 37 email : ladistinction2003@yahoo.com"
+            text: "B.P : 366 Ngaoundéré Tél : 675 46 06 28/698 07 08 37 email : la_distinction2003@yahoo.com"
             font.bold: true
             font.pixelSize: 14
             Layout.alignment: Qt.AlignHCenter
